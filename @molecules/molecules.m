@@ -25,8 +25,8 @@ classdef molecules
        function obj = addmolecules(obj,cel)
             for i=1:obj.numofmol
                 a=1;
-                b=cel.r;
-                c=cel.l;
+                b=cel.r*2;
+                c=cel.l*2;
                 
                 obj.x(i)=a + (b-a).*rand(1);
                 obj.y(i)=a + (c-a).*rand(1);
