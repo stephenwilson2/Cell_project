@@ -4,7 +4,7 @@ classdef onecell
 
     properties
         r=250;
-        l=250;
+        l=500;
         numofmol=3;
         angle=0;
         algo='c';

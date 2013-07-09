@@ -58,22 +58,23 @@ classdef psf
         end %calcsig
         
         function obj = applyPSF(obj,cel)
-            obj.img=zeros(cel.r*2/obj.pxsz,cel.l*2/obj.pxsz);%creates blank matrix of the camera pixel size
+            obj.img=zeros(cel.l*2/obj.pxsz,cel.r*2/obj.pxsz);%creates blank matrix of the camera pixel size
             obj.fl=obj.fl/obj.pxsz; %Scales the pts of fluorescence
-            for ptx = 1:size(obj.fl,1)
-                for i=1:size(obj.img,2)
-                    obj.img(ceil(obj.fl(ptx,2)),i)=...
-                        gaussDistribution(i,obj.fl(ptx,1),obj.sigma/obj.pxsz);
+
+            syms a;
+            for i=1:size(obj.fl,1)
+                mu=obj.fl(1);
+                f=gaussDistribution(a,mu,obj.sigma);
+%                 d=zeros(size(obj.img,1));
+                for x=1:size(obj.img,1)
+                    x1=obj.pxsz*gaussDistribution(x,mu,obj.sigma);
+                    myx=x:obj.pxsz/100:x+obj.pxsz;
+                    x2=trapz(gaussDistribution(myx,mu,obj.sigma))/10;
+                    d(x)=(x1-x2)/x2;
                 end
+                max(d)
             end
-            size(obj.img,2)
-            size(obj.img,1)
-            for o = 1:size(obj.img,2)
-                for i=1:size(obj.img,1)
-                    obj.img(o,i)=...
-                        gaussDistribution(i,obj.img(i,o),obj.sigma/obj.pxsz);
-                end
-            end
+           
         end %applyPSF
         
 
