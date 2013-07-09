@@ -2,7 +2,7 @@ classdef molecules
     %MOLECULES Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties
+    properties (SetAccess=private)
         numofmol=1
         x=zeros(1,1);
         y=zeros(1,1);
@@ -20,24 +20,23 @@ classdef molecules
                 obj.y=zeros(obj.numofmol,1);
                 obj=obj.addmolecules(cell);
             end
-       end
+       end %constructor
+       
        function obj = addmolecules(obj,cel)
             for i=1:obj.numofmol
-                obj.x(i)=randi([1 cel.r]);
-                obj.y(i)=randi([1 cel.l]);
+                a=1;
+                b=cel.r;
+                c=cel.l;
+                
+                obj.x(i)=a + (b-a).*rand(1);
+                obj.y(i)=a + (c-a).*rand(1);
 
                 while ~cel.incell(obj.x(i),obj.y(i))
-                    obj.x(i)=randi([1 cel.r]);
-                    obj.y(i)=randi([1 cel.l]);
+                    obj.x(i)=a + (b-a).*rand(1);
+                    obj.y(i)=a + (c-a).*rand(1);
                 end
             end
-       end   
-       function val = get.x(obj)
-           val=obj.x;
-       end
-       function val = get.y(obj)
-           val=obj.y;
-       end
+       end  %addmolecules
     end %methods
     
 end %classdef
