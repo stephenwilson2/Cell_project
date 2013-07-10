@@ -39,8 +39,14 @@ classdef molecules
                    obj.x(i)=a + (b-a).*rand(1);
                    obj.y(i)=a + (c-a).*rand(1);
                end
-               obj.x(i)=obj.x(i)+cel.ori(2)-cel.l;
-               obj.y(i)=obj.y(i)+cel.ori(1)-cel.r;
+               if strcmp(cel.algo,'sc')
+                   obj.x(i)=obj.x(i)-cel.ori(2);
+                   obj.y(i)=obj.y(i)-cel.ori(1);
+               else
+                   obj.x(i)=obj.x(i)+cel.ori(2)-cel.l;
+                   obj.y(i)=obj.y(i)+cel.ori(1)-cel.r;
+               end
+               
            end
        end  %addmolecules
     end %methods

@@ -6,10 +6,11 @@ classdef onecell
         r=1000;
         l=1000;
         numofmol=1;
-        angle=0;
+        angle=0; %in degrees for some reason
         algo='c';
         ori
         pixelsize=64;
+        
     end
     
     properties (SetAccess=private)
@@ -19,6 +20,7 @@ classdef onecell
         pts=[];
         fl=[];
         current=1;
+        gopsf=1;
     end
     
     
@@ -26,12 +28,12 @@ classdef onecell
     methods
         function obj = onecell(varargin)
             % Sets defaults for optional inputs in order: numofmol,r,l,algo,pixelsize,ori,angle
-            optargs = {obj.numofmol,obj.r,obj.l,obj.algo,obj.pixelsize,obj.ori,obj.angle};
+            optargs = {obj.numofmol,obj.r,obj.l,obj.algo,obj.pixelsize,obj.ori,obj.gopsf,obj.angle};
             
-            % Checks to ensure 7 optional inputs at most
+            % Checks to ensure 8 optional inputs at most
             numvarargs = length(varargin);
-            if numvarargs > 7
-                error('Takes at most 7 optional inputs');
+            if numvarargs > 8
+                error('Takes at most 8 optional inputs');
             end
             
             % Overwrites defaults if optional input exists
@@ -41,28 +43,58 @@ classdef onecell
             obj.l = cell2mat(optargs(3));
             obj.algo = cell2mat(optargs(4));
             obj.pixelsize = cell2mat(optargs(5));
-            obj.ori = cell2mat(optargs(6));
-            obj.angle = cell2mat(optargs(7));
+            if isempty(cell2mat(optargs(6)))
+                obj.ori = [obj.r,obj.l];
+            else
+                obj.ori = cell2mat(optargs(6));
+            end
+            obj.gopsf = cell2mat(optargs(7));
+            obj.angle = cell2mat(optargs(8));
             
             % Construct a onccell object
-            if isempty(obj.ori)
-                obj.ori = [obj.r,obj.l];
-            end
             if obj.algo=='c'
                 obj.l=obj.r;
+            elseif strcmp(obj.algo,'sc')
+                obj.ori=obj.ori-[obj.r,obj.l];
+                obj.l=obj.l*2;
+                
             end
-            obj=obj.addMolecules(obj.numofmol);
-            obj=label(obj);
-%             obj=applyPSF(obj);
-            obj.current=1;
+            
+            if strcmp(obj.algo,'sc') && obj.l<obj.r*3
+                error('Spherocylinders need to be long... Increase the length of the cell to at least 3 times the length.');
+            end
+            obj=refresh_all(obj);
         end %onecell
         
-        function obj=refresh(obj)
+        function obj=refresh_all(obj)
             obj=obj.addMolecules(obj.numofmol);
             obj=label(obj);
-%             obj=applyPSF(obj);
+            if obj.gopsf==1
+                if strcmp(obj.algo,'sc')
+                    obj.l=obj.l/2;
+                    obj=applyPSF(obj);
+                    obj.l=obj.l*2;
+                else
+                    obj=applyPSF(obj);
+                end                
+            end
+            obj=rotate(obj);
             obj.current=1;
-        end %Refresh needs to be updated for angles and origins
+        end %refresh_all
+        
+        function obj=refresh_psf(obj)
+            if obj.gopsf==1
+                if strcmp(obj.algo,'sc')
+                    obj.l=obj.l/2;
+                    obj=applyPSF(obj);
+                    obj.l=obj.l*2;
+                else
+                    obj=applyPSF(obj);
+                end                
+            end
+            obj=rotate(obj);
+            obj.current=1;
+        end %refresh_psf
         
         %set information about the cell
         function obj = set.ori(obj,val)
@@ -71,7 +103,7 @@ classdef onecell
             end
             obj.ori(1)=val(1);
             obj.ori(2)=val(2);
-            obj.current=0;
+            obj.current=0; %#ok<*MCSUP>
         end % set.ori
         function obj = set.r(obj,val)
             if ~isa(val,'double')
@@ -122,9 +154,6 @@ classdef onecell
         function val = get.ori(obj)
             val=obj.ori;
         end % get.ori
-%         function val = get.mol(obj)
-%             val=[obj.mol.x obj.mol.y];
-%         end
         
         function val = incell(obj,x,y)
             %INCELL incell takes an x,y position and determines if it is in
@@ -147,10 +176,10 @@ classdef onecell
                  end
             elseif strcmp(obj.algo,'sc')
                 X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the circle closer at r
-%                 Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce closer to
-%                 X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
-%                 Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
-                if isreal(X) %|| isreal(Y))%||(isreal(X1) || isreal(Y2))
+                Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce closer l-r
+                X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
+                Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
+                if (isreal(X) || isreal(Y))||(isreal(X1) || isreal(Y2))
                     val=1;
                 else
                     val=0;
@@ -178,13 +207,15 @@ classdef onecell
             obj.current=0;
 %             obj.img
         end
-            
+        function obj = rotate(obj)
+            obj.img=imrotate(obj.img, obj.angle);
+        end
         
         %turn back on after diagnostics
         
         %       function disp(obj)
         %          % DISP Display object in MATLAB syntax
-        %          imshow(obj);
+        %  
         %       end % disp
         %Show the cell
         function imshow(obj)
@@ -201,7 +232,7 @@ classdef onecell
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
-               imshow(mat2gray(obj.img));
+               imshow(mat2gray(obj.img'));
             end
         end %imshow
         function imagesc(obj)
@@ -218,7 +249,7 @@ classdef onecell
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
-               imagesc(obj.img);
+               imagesc(obj.img');
             end
         end %imagesc
         function plot(obj)
@@ -232,11 +263,11 @@ classdef onecell
                     obj=obj.refresh();
                 end
             end
-%             if isempty(obj.img)
-                plot(obj.fl(:,1)/obj.pixelsize,obj.fl(:,2)/obj.pixelsize,'o');
-%             else
-%                 imshow(mat2gray(obj.img));
-%             end
+            if strcmp(obj.algo,'sc')
+                plot(obj.fl(:,1)/obj.pixelsize+obj.l/2/obj.pixelsize*.3,obj.fl(:,2)/obj.pixelsize+obj.r/2/obj.pixelsize*.3,'o');
+            else
+                plot(obj.fl(:,1)/obj.pixelsize+obj.l/obj.pixelsize*.3,obj.fl(:,2)/obj.pixelsize+obj.r/obj.pixelsize*.3,'o');
+            end
         end % plot
         
     end % methods
