@@ -232,7 +232,7 @@ classdef onecell
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
-               imshow(mat2gray(obj.img'));
+               imshow(mat2gray(flipud(obj.img')));
             end
         end %imshow
         function imagesc(obj)
@@ -268,6 +268,11 @@ classdef onecell
             else
                 plot(obj.fl(:,1)/obj.pixelsize+obj.l/obj.pixelsize*.3,obj.fl(:,2)/obj.pixelsize+obj.r/obj.pixelsize*.3,'o');
             end
+%             if strcmp(obj.algo,'sc')
+%                 plot(obj.fl(:,1)/obj.pixelsize,obj.fl(:,2)/obj.pixelsize,'o');
+%             else
+%                 plot(obj.fl(:,1)/obj.pixelsize,obj.fl(:,2)/obj.pixelsize,'o');
+%             end
         end % plot
         
     end % methods
