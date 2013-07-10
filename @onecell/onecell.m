@@ -25,7 +25,7 @@ classdef onecell
     % Class methods
     methods
         function obj = onecell(varargin)
-            % Sets defaults for optional inputs
+            % Sets defaults for optional inputs in order: numofmol,r,l,algo,pixelsize,ori,angle
             optargs = {obj.numofmol,obj.r,obj.l,obj.algo,obj.pixelsize,obj.ori,obj.angle};
             
             % Checks to ensure 7 optional inputs at most
@@ -46,18 +46,21 @@ classdef onecell
             
             % Construct a onccell object
             if isempty(obj.ori)
-                obj.ori = [obj.r/2,obj.l/2];
+                obj.ori = [obj.r,obj.l];
+            end
+            if obj.algo=='c'
+                obj.l=obj.r;
             end
             obj=obj.addMolecules(obj.numofmol);
             obj=label(obj);
-            obj=applyPSF(obj);
+%             obj=applyPSF(obj);
             obj.current=1;
         end %onecell
         
         function obj=refresh(obj)
             obj=obj.addMolecules(obj.numofmol);
             obj=label(obj);
-            obj=applyPSF(obj);
+%             obj=applyPSF(obj);
             obj.current=1;
         end %Refresh needs to be updated for angles and origins
         
@@ -66,21 +69,8 @@ classdef onecell
             if ~isa(val,'double')
                 error('Origin must be of class double')
             end
-            if ~isempty(val)
-                if val(1)~=0 && val(1)<obj.r
-                    obj.ori(1)=val(1);
-                else
-                    error('origins start at 1,1 and end at %s,%s',...
-                        num2str(obj.r),num2str(obj.l))
-                end
-                
-                if val(2)~=0 && val(2)<obj.l
-                    obj.ori(2)=val(2);
-                else
-                    error('origins start at 1,1 and end at %s,%s',...
-                        num2str(obj.r),num2str(obj.l))
-                end
-            end
+            obj.ori(1)=val(1);
+            obj.ori(2)=val(2);
             obj.current=0;
         end % set.ori
         function obj = set.r(obj,val)
@@ -141,9 +131,9 @@ classdef onecell
             %the cell or not.
             %It returns a 0 if it is not and a 1 if it is.
             if strcmp(obj.algo,'s')
-                X=asin((x-obj.ori(1))/obj.r);
-                Y=acos((y-obj.ori(2))/obj.l);
-                if isreal(X) && isreal(Y)
+                X=asin((x)/obj.r);
+                Y=acos((y)/obj.l);
+                if isreal(X) || isreal(Y)
                     val=1;
                 else
                     val=0;
@@ -151,6 +141,16 @@ classdef onecell
             elseif strcmp(obj.algo,'c')
                  X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);
                  if isreal(X)
+                    val=1;
+                else
+                    val=0;
+                 end
+            elseif strcmp(obj.algo,'sc')
+                X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the circle closer at r
+%                 Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce closer to
+%                 X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
+%                 Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
+                if isreal(X) %|| isreal(Y))%||(isreal(X1) || isreal(Y2))
                     val=1;
                 else
                     val=0;
@@ -232,11 +232,11 @@ classdef onecell
                     obj=obj.refresh();
                 end
             end
-            if isempty(obj.img)
-                plot(obj.fl(:,1),obj.fl(:,2),'o');
-            else
-                imshow(mat2gray(obj.img));
-            end
+%             if isempty(obj.img)
+                plot(obj.fl(:,1)/obj.pixelsize,obj.fl(:,2)/obj.pixelsize,'o');
+%             else
+%                 imshow(mat2gray(obj.img));
+%             end
         end % plot
         
     end % methods
