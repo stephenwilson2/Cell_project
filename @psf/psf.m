@@ -63,15 +63,16 @@ classdef psf
             obj.fl(:,1)=obj.fl(:,1)+cel.l/obj.pxsz*.3;
             obj.fl(:,2)=obj.fl(:,2)+cel.r/obj.pxsz*.3;
             for i=1:size(obj.fl,1)
-                mu=obj.fl(i,1);
-                y=ceil(obj.fl(i,2));
-                if y>size(obj.img,2)
-                    y=y-1;
-                end
-                for x=1:size(obj.img,1)
-                    obj.img(x,y)=obj.img(x,y)+...
-                        (gaussDistribution(x,mu,obj.sigma/obj.pxsz))*obj.pxsz;
-                end
+%                 mu=obj.fl(i,1);
+%                 y=ceil(obj.fl(i,2));
+%                 if y>size(obj.img,2)
+%                     y=y-1;
+%                 end
+%                 for x=1:size(obj.img,1)
+%                     obj.img(x,y)=obj.img(x,y)+...
+%                         (gaussDistribution(x,mu,obj.sigma/obj.pxsz))*obj.pxsz;
+%                 end
+                obj.img(round(obj.fl(i,1)),round(obj.fl(i,2)))=obj.img(round(obj.fl(i,1)),round(obj.fl(i,2)))+1;
             end
 
             f=fspecial('gaussian',[round(cel.l*2/obj.pxsz),round(cel.r*2/obj.pxsz)],obj.sigma/obj.pxsz);
