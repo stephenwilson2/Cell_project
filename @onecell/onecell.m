@@ -15,7 +15,6 @@ classdef onecell
     
     properties (SetAccess=private)
         mol
-        weird
         img=[];
         pts=[];
         fl=[];
@@ -249,7 +248,7 @@ classdef onecell
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
-               imagesc(obj.img');
+               colormap('Jet');imagesc(obj.img');
             end
         end %imagesc
         function plot(obj)
@@ -263,6 +262,7 @@ classdef onecell
                     obj=obj.refresh();
                 end
             end
+%             (obj.fl(:,1)-obj.ori(1))-(1-cos(obj.angle*pi/180))
             if strcmp(obj.algo,'sc')
                 plot(obj.fl(:,1)/obj.pixelsize+obj.l/2/obj.pixelsize*.3,obj.fl(:,2)/obj.pixelsize+obj.r/2/obj.pixelsize*.3,'o');
             else
