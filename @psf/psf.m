@@ -71,7 +71,7 @@ classdef psf
                 end
                 for x=1:size(obj.img,1)
                     tmp(x,y)=tmp(x,y)+...
-                        (gaussDistribution(x,mu,obj.sigma/obj.pxsz))*obj.pxsz;
+                        (gaussDistribution(x,mu,obj.sigma/obj.pxsz));
                 end
                 for h=1:size(obj.img,1)
                     o=1:size(obj.img,2);

@@ -7,6 +7,6 @@ hold all;
 imagesc(c);axis equal; plot(c); axis equal;
 legend(sprintf('One flurophore has an area of: %d',sum(sum(c.img))));
 hold off;
-
+saveas(gcf,'test_OneFluorophore.fig')
 
 

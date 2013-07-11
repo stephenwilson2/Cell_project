@@ -295,7 +295,7 @@ classdef onecell
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
-               colormap('Jet');imagesc(obj.img');
+               imagesc(obj.img');colormap('gray');colorbar;
             end
         end %imagesc
         function plot(obj)

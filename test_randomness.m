@@ -2,7 +2,7 @@ function test_randomness()
     clear all;
     close all;
     if ~isequal(exist('test_randomness.mat','file'),2)
-        datapts=20;
+        datapts=200;
         molpcell=100;
         r=250;
         w=1000;
@@ -10,39 +10,40 @@ function test_randomness()
         x=[];
         y=[];
         for i=1:datapts
-            c{i}=onecell(molpcell,r,w,'sc',1,[250 1000],1,0);
-            x=[x; c{i}.pts(:,1)];
-            y=[y; c{i}.pts(:,2)];
+            c{i}=onecell(molpcell,r,w,'sc',10,[250 1000],1,0);
+            x=[x; c{i}.pts(:,1)/10];
+            y=[y; c{i}.pts(:,2)/10];
         end
+        c{1}=c{1}.cell_mask();
         save('test_randomness')
     else
         load('test_randomness')
     end
-    analyze(datapts,x,y,c)
+    analyze(x,y,c)
 end
 
 
-function analyze(datapts,molx,moly,cells)
-cells{1}=cells{1}.cell_mask();
-bin1=cells{1}.l;
-bin2=cells{1}.r*2;
+function analyze(molx,moly,cells)
+
+bin1=cells{1}.l/10;
+bin2=cells{1}.r*2/10;
 expect=[];
 figure(1);
 [f2,x2]=hist(molx,1:1:bin1);
 bar(x2*10,f2*10/trapz(x2,f2))
 hold on;
 molx=sort(molx);
-expect(1:datapts)=0;
-m=cells{1}.cellmask;
-whos m;
-max(molx)
-for w=1:datapts
-    cel=cells{w};
-    expect(w)=(sum(cells{1}.cellmask(round(molx(w)),:)/sum(sum(cells{1}.cellmask))));
-end
+expect=zeros(length(molx),1);
 
-expect=[molx *10;expect*10];
-plot(expect(1,:),expect(2,:),'color','red')
+for w=1:length(molx)
+    expect(w)=...
+        (sum(cells{1}.cellmask(ceil(molx(w)),:)/sum(sum(cells{1}.cellmask))));
+end
+whos molx;
+whos expect;
+
+expect=[molx *10,expect*10];
+plot(expect(:,1),expect(:,2),'color','red')
 hold off;
 title('Distribution of a Large Number of Randomly Chosen X-values',... 
   'FontWeight','bold')
@@ -56,15 +57,14 @@ figure(2);
 bar(x3*10,f3*10/trapz(x3,f3))
 hold on;
 moly=sort(moly);
-expect(1:datapts,1)=0;
+expect=zeros(length(moly),1);
 
-for w=1:datapts
-    cel=cells{w};
-    expect(w)=(sum(cells{1}.cellmask(:,round(moly(w)))/sum(sum(cells{1}.cellmask))));
+for w=1:length(moly)
+    expect(w)=(sum(cells{1}.cellmask(:,ceil(moly(w)))/sum(sum(cells{1}.cellmask))));
 end
-expect=expect';
-expect=[moly *10;expect*10];
-plot(expect(1,:),expect(2,:),'color','red')
+
+expect=[moly *10,expect*10];
+plot(expect(:,1),expect(:,2),'color','red')
 hold off;
 title('Distribution of a Large Number of Randomly Chosen Y-values',... 
   'FontWeight','bold')
