@@ -81,9 +81,7 @@ classdef psf
             end
 
         end %applyPSF
-        
-
-        
+               
     end %methods
     
 end

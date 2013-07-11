@@ -1,6 +1,13 @@
 classdef onecell
     %onecell Creates one cell that can be manipulated.
-    %   WILL ADDD DETAILS HERE
+    %  The methods availible for this class in order of use are:
+    %  onecell  addMolecules  label  applyPSF  rotate (imagesc || imshow ||
+    %  plot)
+    %
+    %  The folowing methods play a supporting role:
+    %  incell  refresh_psf  refresh_all  cell_mask                          
+    %
+    %  If any property is manually set in the program, one of the refresh functions must be used.
 
     properties
         r=1000;
@@ -10,7 +17,7 @@ classdef onecell
         algo='c';
         ori
         pixelsize=64;
-        
+        cellmask=[];
     end
     
     properties (SetAccess=private)
@@ -207,9 +214,36 @@ classdef onecell
 %             obj.img
         end
         function obj = rotate(obj)
-            obj.img=imrotate(obj.img, obj.angle);
+            if ~isempty(obj.img)
+                obj.img=imrotate(obj.img, obj.angle);
+            end
+            
         end
-        
+        function obj = cell_mask(obj)
+                
+            if strcmp(obj.algo,'sc')
+                obj.cellmask=zeros(round(obj.l/obj.pixelsize*1.3),round(obj.r*2/obj.pixelsize*1.3));
+                
+                tmpl=obj.l/2;
+                
+            else
+                obj.cellmask=zeros(round(obj.l*2/obj.pixelsize*1.3),round(obj.r*2/obj.pixelsize*1.3));
+                tmpl=obj.l;
+  
+            end
+            
+            for x=1:tmpl
+                for y=1:obj.r*2
+                    if obj.incell(x,y)
+                        newx=round(x+tmpl/obj.pixelsize*.3);
+                        newy=round(y+obj.r/obj.pixelsize*.3);
+                        obj.cellmask(newx,newy)=1;
+                    end
+                end
+            end
+            figure(432);
+            imagesc(obj.cellmask);
+        end
         %turn back on after diagnostics
         
         %       function disp(obj)
