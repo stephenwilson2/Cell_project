@@ -1,6 +1,6 @@
 close all;
 clear all;
-c=onecell(10,250,1000,'sc',64,[250 1000],1,0);
+c=onecell(10,250,1000,'sc',10,[250 1000],1,0);
 c=c.cell_mask();
 figure(15);
 h1=subplot(5,1,1:4);
@@ -13,6 +13,6 @@ figure(13)
 % imshow(c);
 mask=c.cellmask;
 whos mask;
-imagesc(c.cellmask)
+imagesc(c.cellmask')
 
 

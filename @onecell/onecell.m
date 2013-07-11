@@ -216,40 +216,45 @@ classdef onecell
         function obj = rotate(obj)
             if ~isempty(obj.img)
                 obj.img=imrotate(obj.img, obj.angle);
+            else
+                disp('Not rotating, because there is no image to rotate')
             end
             
         end
         function obj = cell_mask(obj)
-                
+            
             if strcmp(obj.algo,'sc')
-                obj.cellmask=zeros(round(obj.l/obj.pixelsize*1.3),round(obj.r*2/obj.pixelsize*1.3));
-                
+                obj.cellmask=zeros(round(obj.l/obj.pixelsize),round(obj.r*2/obj.pixelsize));
                 tmpl=obj.l/2;
                 
             else
-                obj.cellmask=zeros(round(obj.l*2/obj.pixelsize*1.3),round(obj.r*2/obj.pixelsize*1.3));
+                obj.cellmask=zeros(round(obj.l*2/obj.pixelsize),round(obj.r*2/obj.pixelsize));
                 tmpl=obj.l;
-  
             end
-            
-            for x=1:tmpl
+            n=0;
+            pt=[]
+            for x=1:obj.l
                 for y=1:obj.r*2
-                    if obj.incell(x,y)
-                        newx=round(x+tmpl/obj.pixelsize*.3);
-                        newy=round(y+obj.r/obj.pixelsize*.3);
-                        obj.cellmask(newx,newy)=1;
+                    X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the circle closer at r
+                    Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce closer l-r
+                    X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
+                    Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
+                    if (isequal(X,asin(1)) ||isequal(Y,asin(1))||isequal(X1,asin(1)^0.5) || isequal(Y2,acos(1)^0.5))
+                        n=n+1;
+                        pt=[pt;[x y]];
                     end
                 end
             end
-            figure(432);
-            imagesc(obj.cellmask);
+            x=pt(:,1);
+            y=pt(:,2);
+            plot(round(x),round(y),'o')
+            
+            for i=1:length(x)
+                obj.cellmask(ceil(x(i)/obj.pixelsize),ceil(y(i)/obj.pixelsize))=1;
+            end
+            
         end
-        %turn back on after diagnostics
-        
-        %       function disp(obj)
-        %          % DISP Display object in MATLAB syntax
-        %  
-        %       end % disp
+
         %Show the cell
         function imshow(obj)
             % IMSHOW Shows the cell
