@@ -1,5 +1,7 @@
 function test_randomness()
-    if ~isequal(exist('test_randomness.mat'),2)
+    clear all;
+    close all;
+    if ~isequal(exist('test_randomness.mat','file'),2)
         datapts=20;
         molpcell=100;
         r=250;
@@ -8,7 +10,7 @@ function test_randomness()
         x=[];
         y=[];
         for i=1:datapts
-            c{i}=onecell(molpcell,r,w,'sc',64,[250 1000],1,0);
+            c{i}=onecell(molpcell,r,w,'sc',1,[250 1000],1,0);
             x=[x; c{i}.pts(:,1)];
             y=[y; c{i}.pts(:,2)];
         end
@@ -21,6 +23,7 @@ end
 
 
 function analyze(datapts,molx,moly,cells)
+cells{1}=cells{1}.cell_mask();
 bin1=cells{1}.l;
 bin2=cells{1}.r*2;
 expect=[];
@@ -29,14 +32,17 @@ figure(1);
 bar(x2*10,f2*10/trapz(x2,f2))
 hold on;
 molx=sort(molx);
-% expect(1:datapts)=0;
-% for w=1:datapts
-%     cel=cells{w};
-%     expect(w)=(sum(cel.img(molx(w),:)/sum(sum(cel.img))));
-% end
-% 
-% expect=[molx *10;expect*10];
-% plot(expect(1,:),expect(2,:),'color','red')
+expect(1:datapts)=0;
+m=cells{1}.cellmask;
+whos m;
+max(molx)
+for w=1:datapts
+    cel=cells{w};
+    expect(w)=(sum(cells{1}.cellmask(round(molx(w)),:)/sum(sum(cells{1}.cellmask))));
+end
+
+expect=[molx *10;expect*10];
+plot(expect(1,:),expect(2,:),'color','red')
 hold off;
 title('Distribution of a Large Number of Randomly Chosen X-values',... 
   'FontWeight','bold')
@@ -50,14 +56,15 @@ figure(2);
 bar(x3*10,f3*10/trapz(x3,f3))
 hold on;
 moly=sort(moly);
-% expect(1:datapts,1)=0;
-% for w=1:datapts
-%     cel=cells{w};
-%     expect(w)=(sum(cel.img(:,moly(w))/sum(sum(cel.img))));
-% end
-% expect=expect';
-% expect=[moly *10;expect*10];
-% plot(expect(1,:),expect(2,:),'color','red')
+expect(1:datapts,1)=0;
+
+for w=1:datapts
+    cel=cells{w};
+    expect(w)=(sum(cells{1}.cellmask(:,round(moly(w)))/sum(sum(cells{1}.cellmask))));
+end
+expect=expect';
+expect=[moly *10;expect*10];
+plot(expect(1,:),expect(2,:),'color','red')
 hold off;
 title('Distribution of a Large Number of Randomly Chosen Y-values',... 
   'FontWeight','bold')

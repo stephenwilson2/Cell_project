@@ -182,7 +182,7 @@ classdef onecell
                  end
             elseif strcmp(obj.algo,'sc')
                 X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the circle closer at r
-                Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce closer l-r
+                Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce l-r
                 X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
                 Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
                 if (isreal(X) || isreal(Y))||(isreal(X1) || isreal(Y2))
@@ -224,34 +224,42 @@ classdef onecell
         function obj = cell_mask(obj)
             
             if strcmp(obj.algo,'sc')
-                obj.cellmask=zeros(round(obj.l/obj.pixelsize),round(obj.r*2/obj.pixelsize));
+                obj.cellmask=zeros(round(obj.l/obj.pixelsize),round(obj.r*2/obj.pixelsize)/2);
                 tmpl=obj.l/2;
                 
             else
-                obj.cellmask=zeros(round(obj.l*2/obj.pixelsize),round(obj.r*2/obj.pixelsize));
-                tmpl=obj.l;
+                error('Only Spherocylinders currently supported')
             end
-            n=0;
-            pt=[]
-            for x=1:obj.l
-                for y=1:obj.r*2
+            pt=[];
+            for x=1:1:obj.r
+                for y=1:1:obj.r
                     X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the circle closer at r
-                    Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce closer l-r
+                    Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce at l-r
                     X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
                     Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
-                    if (isequal(X,asin(1)) ||isequal(Y,asin(1))||isequal(X1,asin(1)^0.5) || isequal(Y2,acos(1)^0.5))
-                        n=n+1;
+                    if (isreal(X) || isreal(Y))||(isreal(X1) || isreal(Y2))
                         pt=[pt;[x y]];
                     end
                 end
             end
-            x=pt(:,1);
-            y=pt(:,2);
-            plot(round(x),round(y),'o')
+            x=pt(:,1);y=pt(:,2);
+            mx=obj.r+1:obj.l-obj.r;
+            x=[x;(x+obj.l-obj.r);mx';mx'];
+            my=zeros(obj.l-2*obj.r,1);
+            my(:)=obj.r;
+            my2=ones(obj.l-2*obj.r,1);
+
+            y=[y;flipud(y);my2;my];
             
             for i=1:length(x)
                 obj.cellmask(ceil(x(i)/obj.pixelsize),ceil(y(i)/obj.pixelsize))=1;
             end
+            tmp=obj.cellmask;
+            
+            obj.cellmask=zeros(round(obj.l/obj.pixelsize),round(obj.r*2/obj.pixelsize));
+            obj.cellmask(1:size(tmp,1),1:size(tmp,2))=tmp;
+            obj.cellmask(1:size(tmp,1),size(tmp,2)+1:2*size(tmp,2))=fliplr(tmp);
+            obj.cellmask=imfill(obj.cellmask,8,'holes');
             
         end
 
