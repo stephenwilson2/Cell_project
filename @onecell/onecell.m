@@ -10,11 +10,11 @@ classdef onecell
     %  If any property is manually set in the program, one of the refresh functions must be used.
 
     properties
-        r=1000;
+        r=250;
         l=1000;
-        numofmol=1;
+        numofmol=10;
         angle=0; %in degrees for some reason
-        algo='c';
+        algo='sc';
         ori
         pixelsize=64;
         cellmask=[];
@@ -298,7 +298,7 @@ classdef onecell
                imagesc(obj.img');colormap('gray');colorbar;%axis equal;axis tight;
                xlabel(sprintf('One pixel = %i^2 nm',obj.pixelsize));
                ylabel(sprintf('One pixel = %i^2 nm',obj.pixelsize));
-               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,obj.r,obj.l,obj.pixelsize),'FontWeight','bold');
+               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,obj.r*2,obj.l,obj.pixelsize),'FontWeight','bold');
             end
         end %imagesc
         function plot(obj)
