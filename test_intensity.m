@@ -49,7 +49,7 @@ function analyze(cells,pts)
     xlabel('Number of molecules')
     ylabel('Variance')
 
-    n1=sprintf('Fit-Slope: %d, R^2: %d', p(1),R2psf(1,2));
+    n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
     legend('Simulation with PSF',n1)
     
     saveas(gcf, 'TestIntensity.fig')

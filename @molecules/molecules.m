@@ -1,16 +1,20 @@
 classdef molecules
-    %MOLECULES Summary of this class goes here
-    %   Detailed explanation goes here
+    %MOLECULES Constructs molecules for the onecell class
+    %   Takes the onecell object and one of these:
+	%      - An old molecules object
+	%      - Number of molecules to add
+
     
     properties (SetAccess=private)
-        numofmol=1
-        x
-        y
+        numofmol=1 %Number of molecules
+        x %X-coordinates of the molecules
+        y %Y-coordinates of the molecules
     end %properties
     
     
     methods
        function obj = molecules(cell,c)
+           %Constructs molecules for the onecell class
             if isa(c,'molecules')
                 obj.x=c.x;
                 obj.y=c.y;
@@ -21,11 +25,9 @@ classdef molecules
                 obj=obj.addmolecules(cell);
             end
        end %constructor
-%        function obj=set.x(obj,val)
-%           obj.x=val; 
-%        end
        
-       function obj = addmolecules(obj,cel)  
+       function obj = addmolecules(obj,cel)
+           %Calculates random origins for the molecules
            a=1;
            b=cel.l*2;
            c=cel.r*2;

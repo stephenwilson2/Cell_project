@@ -1,6 +1,9 @@
 classdef psf
     %PSF Summary of this class goes here
-    %   Detailed explanation goes here
+    %   Takes the onecell object and two optional arguments: 
+	%     - the pixel size of the camera 
+	%     - the wavelength of the emission light
+
     
     
     properties (SetAccess=private)

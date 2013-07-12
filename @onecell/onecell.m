@@ -1,39 +1,81 @@
 classdef onecell
     %onecell Creates one cell that can be manipulated.
-    %  The methods availible for this class in order of use are:
-    %  onecell  addMolecules  label  applyPSF  rotate (imagesc || imshow ||
-    %  plot)
+    %Constructor:
+    %Takes input for any of the following variables:
+    %    - numofmol: the number of molecules to be added to the cell
+    %    - r: The radius of the cell
+    %    - l: The length of the cell (this is half the actual length)
+    %    - algo: Selects for the type of cell to be used. Inputs are:
+    %        - 'c': circle
+    %        - 's': square (or rectangle)
+    %        - 'sc': spherocylinder
+    %    - pixelsize: Gives the size in nm^2 of the camerapixel
+    %    - ori: States the origin of the cell in nm. 
+    %        - 's' and 'c' cells are set to [r,l] by default
+    %        - 'sc' cells are set to [0,0] by default
+    %    - gopsf: If set to 1, the PSF is applied to the fluorophores. If set to 0, the PSF is not set
+    %    - angle: Gives the angle to rotate the cell in degrees
     %
-    %  The folowing methods play a supporting role:
-    %  incell  refresh_psf  refresh_all  cell_mask                          
+    %Variables:
+    %User changeable variables are the same as those in the constructor and can be changed in the following manner:
+    %    c=onecell();
+    %    c.r=20;
+    %The radius would then be 20 nm.
     %
-    %  If any property is manually set in the program, one of the refresh functions must be used.
+    %The following variables are accessible to the user but cannot be directly changed:
+    %    - mol: This stores the molecules object. There should be functions in onecell to manipulate the molecules object.
+    %    - img: Stores the image matrix
+    %    - pts: Stores the locations of the molecules as pairs of points
+    %    - fl: Stores the locations of the fluorophores as pairs of points
+    %    - cellmask: Stores an image of the cell's mask. Must be constructed with the cell_mask function
+    %    - current: If 1, then the img, pts, and fl variables are up-to-date. If 0,  one of onecell's refresh functions need to be used
+    %
+    %Functions:
+    %addMolecules (int): Adds a given integer number molecules to the cell
+    %applyPSF ():  Applies the PSF and creates onecell's img
+    %cell_mask(): Creates a cell mask stored under onecell as cellmask
+    %imagesc(onecell): Specifies the way that imagesc displays the onecell object. Uses a color bar and labels
+    %imshow(onecell): Specifies the way that imshow displays the onecell object
+    %incell(double x, double y):  Checks to see if point [x,y] is in the cell
+    %label(): Labels the molecules with flurophores
+    %Onecell(varargin): onecell's constructor 
+    %plot(onecell): Specifies the way that plot displays the onecell object. When plotted the fluorophores are 
+    %             plotted so that they could be overlaid onto a cell
+    %refresh_all(): Refreshes the entire cell; Used if the molecules or fluorophores were changed
+    %refresh_cell(): Refreshes everything but does not get new positions for the molecules or change the 
+    %                number of molecules. Used if anything but the molecules was changed
+    %rotate(): Rotates the cell according to onecell's angle
 
     properties
-        r=250;
-        l=1000;
-        numofmol=10;
-        angle=0; %in degrees for some reason
-        algo='sc';
-        ori
-        pixelsize=64;
-        cellmask=[];
+        r=250; % The radius of the cell
+        l=1000; % The length of the cell (this is half the actual length)
+        numofmol=10; %The number of molecules to be added to the cell
+        angle=0; %Gives the angle to rotate the cell in degrees
+        algo='sc'; %Selects for the type of cell to be used. Inputs are: - 'c': circle - 's': square (or rectangle)- 'sc': spherocylinder
+        ori %States the origin of the cell in nm. - 's' and 'c' cells are set to [r,l] by default - 'sc' cells are set to [0,0] by default
+        pixelsize=64;%Gives the size in nm^2 of the camerapixel
+        gopsf=1;%If set to 1, the PSF is applied to the fluorophores. If set to 0, the PSF is not set
     end
     
     properties (SetAccess=private)
-        mol
-        img=[];
-        pts=[];
-        fl=[];
-        current=1;
-        gopsf=1;
+        mol %This stores the molecules object. There should be functions in onecell to manipulate the molecules object.
+        img=[]; %Stores the image matrix
+        pts=[]; %Stores the locations of the molecules as pairs of points
+        fl=[]; %Stores the locations of the fluorophores as pairs of points
+        cellmask=[]; %Stores an image of the cell's mask. Must be constructed with the cell_mask function
+        current=1; %If 1, then the img, pts, and fl variables are up-to-date. If 0,  one of onecell's refresh functions need to be used
     end
     
+    properties(SetAccess=private,GetAccess=private)
+       oldr
+       oldl
+       oldori
+    end
     
     % Class methods
     methods
         function obj = onecell(varargin)
-            % Sets defaults for optional inputs in order: numofmol,r,l,algo,pixelsize,ori,angle
+            % Sets defaults for optional inputs in order: numofmol,r,l,algo,pixelsize,ori,gopsf,angle
             optargs = {obj.numofmol,obj.r,obj.l,obj.algo,obj.pixelsize,obj.ori,obj.gopsf,obj.angle};
             
             % Checks to ensure 8 optional inputs at most
@@ -73,6 +115,7 @@ classdef onecell
         end %onecell
         
         function obj=refresh_all(obj)
+            %refresh_all Refreshes the entire cell; Used if the molecules or fluorophores were changed
             obj=obj.addMolecules(obj.numofmol);
             obj=label(obj);
             if obj.gopsf==1
@@ -86,9 +129,17 @@ classdef onecell
             end
             obj=rotate(obj);
             obj.current=1;
+            obj.oldr=obj.r;
+            obj.oldl=obj.l;
+            obj.oldori=obj.ori;
         end %refresh_all
         
-        function obj=refresh_psf(obj)
+        function obj=refresh_cell(obj)
+            %refresh_all Refreshes everything but does not get new positions for the molecules or change the 
+            %number of molecules. Used if anything but the molecules was changed
+            obj.pts(:,1)=obj.pts(:,1)+(obj.r-obj.oldr)+(obj.ori(1)-obj.oldori(1));
+            obj.pts(:,2)=obj.pts(:,2)+(obj.l-obj.oldl)+(obj.ori(2)-obj.oldori(2));
+            obj=label(obj);
             if obj.gopsf==1
                 if strcmp(obj.algo,'sc')
                     obj.l=obj.l/2;
@@ -100,10 +151,14 @@ classdef onecell
             end
             obj=rotate(obj);
             obj.current=1;
-        end %refresh_psf
+            obj.oldr=obj.r;
+            obj.oldl=obj.l;
+            obj.oldori=obj.ori;
+        end %refresh_cell
         
         %set information about the cell
         function obj = set.ori(obj,val)
+            obj.oldori=obj.ori;
             if ~isa(val,'double')
                 error('Origin must be of class double')
             end
@@ -112,6 +167,7 @@ classdef onecell
             obj.current=0; %#ok<*MCSUP>
         end % set.ori
         function obj = set.r(obj,val)
+            obj.oldr=obj.r;
             if ~isa(val,'double')
                 error('Radius must be of class double')
             end
@@ -120,19 +176,20 @@ classdef onecell
         end % set.r
         function obj = set.pixelsize(obj,val)
             if ~isa(val,'double')
-                error('Radius must be of class double')
+                error('pixelsize must be of class double')
             end
             obj.pixelsize = val;
             obj.current=0;
         end % set.pixelsize
         function obj = set.numofmol(obj,val)
             if ~isa(val,'double')
-                error('Radius must be of class double')
+                error('numofmol must be of class double')
             end
             obj.numofmol = val;
             obj.current=0;
-        end % set.r
+        end % set.numofmol
         function obj = set.l(obj,val)
+            obj.oldl=obj.l;
             if ~isa(val,'double')
                 error('Length must be of class double')
             end
@@ -162,7 +219,7 @@ classdef onecell
         end % get.ori
         
         function val = incell(obj,x,y)
-            %INCELL incell takes an x,y position and determines if it is in
+            %INCELL Checks to see if point [x,y] is in the cell
             %the cell or not.
             %It returns a 0 if it is not and a 1 if it is.
             if strcmp(obj.algo,'s')
@@ -196,19 +253,20 @@ classdef onecell
         
         %Adjusts or adds to the cell
         function obj = addMolecules(obj,val)
-            %addMolecules Adds molecules randomly into the cell according to
-            %the number given
+            %addMolecules Adds a given integer number molecules to the cell
             obj.numofmol=val;
             obj.mol=molecules(obj,val);
             obj.pts=[obj.mol.x obj.mol.y];
             obj.current=0;
         end
         function obj = label(obj)
+            % label Labels the molecules with flurophores
             tmp=labels(obj,obj.mol);
             obj.fl=tmp.flpts;
             obj.current=0;
         end
         function obj = applyPSF(obj)
+            %applyPSF Applies the PSF and creates onecell's img
             obj.img=psf(obj,obj.pixelsize).img;
             obj.current=0;
 %             obj.img
@@ -222,7 +280,7 @@ classdef onecell
             
         end
         function obj = cell_mask(obj)
-            
+            %cell_mask Creates a cell mask stored under onecell as cellmask
             if strcmp(obj.algo,'sc')
                 obj.cellmask=zeros(round(obj.l/obj.pixelsize),round(obj.r*2/obj.pixelsize)/2);
                 tmpl=obj.l/2;
@@ -265,31 +323,32 @@ classdef onecell
 
         %Show the cell
         function imshow(obj)
-            % IMSHOW Shows the cell
+            % IMSHOW Specifies the way that imshow displays the onecell object
             if obj.current==0;
                 reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
                 if isempty(reply)
                     reply = 'Y';
                 end
                 if strcmp(reply,'Y')
-                    obj=obj.refresh();
+                    obj=obj.refresh_all();
                 end
             end
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
                imshow(mat2gray(flipud(obj.img')));
+               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,obj.r*2,obj.l,obj.pixelsize),'FontWeight','bold');
             end
         end %imshow
         function imagesc(obj)
-            % IMAGESC Shows the cell
+            % IMAGESC Specifies the way that imagesc displays the onecell object. Uses a color bar and labels
             if obj.current==0;
                 reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
                 if isempty(reply)
                     reply = 'Y';
                 end
                 if strcmp(reply,'Y')
-                    obj=obj.refresh();
+                    obj=obj.refresh_all();
                 end
             end
             if isempty(obj.img)
@@ -302,14 +361,14 @@ classdef onecell
             end
         end %imagesc
         function plot(obj)
-            % PLOT  PLOT(obj) plots the cell
+            % PLOT  Specifies the way that plot displays the onecell object. When plotted the fluorophores are plotted so that they could be overlaid onto a cell
             if obj.current==0;
                 reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
                 if isempty(reply)
                     reply = 'Y';
                 end
                 if strcmp(reply,'Y')
-                    obj=obj.refresh();
+                    obj=obj.refresh_all();
                 end
             end
 %             (obj.fl(:,1)-obj.ori(1))-(1-cos(obj.angle*pi/180))
