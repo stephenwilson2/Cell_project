@@ -295,7 +295,10 @@ classdef onecell
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
-               imagesc(obj.img');colormap('gray');colorbar;
+               imagesc(obj.img');colormap('gray');colorbar;%axis equal;axis tight;
+               xlabel(sprintf('One pixel = %i^2 nm',obj.pixelsize));
+               ylabel(sprintf('One pixel = %i^2 nm',obj.pixelsize));
+               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,obj.r,obj.l,obj.pixelsize),'FontWeight','bold');
             end
         end %imagesc
         function plot(obj)

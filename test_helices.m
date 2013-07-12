@@ -1,21 +1,23 @@
 function test_helices()
-    if ~isequal(exist('test_helices.mat','file'),2)
+    clear all;
+    close all;
+    if ~isequal(exist('test_helices_fission.mat','file'),2)
         datapts=3;
-        molpcell=round(10:10:100);
+        molpcell=round(25:25:125)*140;
         l=length(molpcell);
-        r=250;
-        w=1000;
+        r=3500;
+        w=10000;
         c=cell(datapts,1);
         i=0;
         for numofmol=molpcell
             for o=1:datapts
                 i=i+1;
-                c{i}=onecell(numofmol,r,w,'sc',64,[250 1000],1);
+                c{i}=onecell(numofmol,r,w,'sc',64,[r w],1);
             end
         end
-%         save('test_helices')
+        save('test_helices_fission')
     else
-        load('test_helices')
+        load('test_helices_fission')
     end
     analyze(c,datapts,l);
 end
@@ -27,9 +29,6 @@ figure(1);
             subplot(l,pts,i)
             imagesc(cel{i})
             axis tight; axis off;
-            
-            s=num2str(cel{i}.numofmol);
-            s=strcat('\color{white}',s,' Molecules');
-            text(.9,1.1,s);
     end
+    saveas(gcf,'test_helices_fission.fig')
 end

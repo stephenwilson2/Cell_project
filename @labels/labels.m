@@ -8,7 +8,8 @@ classdef labels
     end
     
     methods
-        function obj = labels(cell,c)
+        function obj = labels(cell,varargin)
+	    c=varargin;
             if isa(c,'labels')
                 obj.flpts=c.flpts;
             else
