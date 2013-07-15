@@ -12,10 +12,10 @@ function test_helices()
         for numofmol=molpcell
             for o=1:datapts
                 i=i+1;
-                c{i}=onecell(numofmol,r,w,'sc',64,[r w],1,45);
+                c{i}=onecell(numofmol,r,w,'sc',64,[r w],1);
             end
         end
-        save('test_helices_rotated')
+        save('test_helices')
 %     else
 %         load('test_helices')
 %     end
@@ -24,11 +24,12 @@ end
 
 function analyze(cel,pts,l)
 figure(1);
+size(cel{1}.img)
     for i=1:length(cel)
             i
             subplot(l,pts,i)
             imagesc(cel{i}'); axis equal;
-            axis tight; axis off;
+            axis tight;
     end
-    saveas(gcf,'test_helices_rotated.fig')
+    saveas(gcf,'test_helices.fig')
 end

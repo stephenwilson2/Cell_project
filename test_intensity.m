@@ -2,8 +2,8 @@ function test_intensity()
     clear all;
     close all;
     if ~isequal(exist('test_intensity.mat','file'),2)
-        datapts=200;
-        molpcell=round(50:10:200);
+        datapts=20;
+        molpcell=round(1:1:200);
         r=250;
         w=1000;
         c=cell(datapts,1);
@@ -22,7 +22,7 @@ function test_intensity()
 end
 
 function analyze(cells,pts)
-    pairpsf(length(cells)/pts,3)=0;
+    pairpsf(length(cells)/pts+1,3)=0;
     for i=1:length(cells)/pts
         V=zeros(pts,1);
         n=zeros(pts,1);
@@ -46,7 +46,7 @@ function analyze(cells,pts)
     hold off;
     title('Variance compared to number of molecules',...
         'FontWeight','bold')
-    xlabel('Number of molecules')
+    xlabel('Mean Pixel Intensity')
     ylabel('Variance')
 
     n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));

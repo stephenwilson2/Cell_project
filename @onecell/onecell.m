@@ -69,6 +69,7 @@ classdef onecell
     properties(SetAccess=private,GetAccess=private)
        oldr
        oldl
+       oldpixelsize
        oldori
     end
     
@@ -111,12 +112,14 @@ classdef onecell
             if strcmp(obj.algo,'sc') && obj.l<obj.r*3
                 error('Spherocylinders need to be long... Increase the length of the cell to at least 3 times the length.');
             end
+            obj=obj.addMolecules(obj.numofmol);
             obj=refresh_all(obj);
         end %onecell
         
         function obj=refresh_all(obj)
-            %refresh_all Refreshes the entire cell; Used if the molecules or fluorophores were changed
-            obj=obj.addMolecules(obj.numofmol);
+            %refresh_all Refreshes the entire cell; Used if the molecules
+            %were changed. Not automated because refreshing takes a
+            %significant amount of time
             obj=label(obj);
             if obj.gopsf==1
                 if strcmp(obj.algo,'sc')
@@ -128,17 +131,21 @@ classdef onecell
                 end                
             end
             obj=rotate(obj);
-            obj.current=1;
             obj.oldr=obj.r;
             obj.oldl=obj.l;
             obj.oldori=obj.ori;
+            obj.current=1;
         end %refresh_all
         
         function obj=refresh_cell(obj)
             %refresh_all Refreshes everything but does not get new positions for the molecules or change the 
-            %number of molecules. Used if anything but the molecules was changed
-            obj.pts(:,1)=obj.pts(:,1)+(obj.r-obj.oldr)+(obj.ori(1)-obj.oldori(1));
-            obj.pts(:,2)=obj.pts(:,2)+(obj.l-obj.oldl)+(obj.ori(2)-obj.oldori(2));
+            %number of molecules. Used if anything but the molecules was
+            %changed. Not automated because refreshing takes a
+            %significant amount of time
+            f1=(obj.r-obj.oldr)+(obj.ori(1)-obj.oldori(1));
+            f2=(obj.l-obj.oldl)+(obj.ori(2)-obj.oldori(2));
+            obj.pts(:,1)=obj.pts(:,1)+f1;
+            obj.pts(:,2)=obj.pts(:,2)+f2;
             obj=label(obj);
             if obj.gopsf==1
                 if strcmp(obj.algo,'sc')
@@ -150,10 +157,10 @@ classdef onecell
                 end                
             end
             obj=rotate(obj);
-            obj.current=1;
             obj.oldr=obj.r;
             obj.oldl=obj.l;
             obj.oldori=obj.ori;
+            obj.current=1;
         end %refresh_cell
         
         %set information about the cell
@@ -165,6 +172,7 @@ classdef onecell
             obj.ori(1)=val(1);
             obj.ori(2)=val(2);
             obj.current=0; %#ok<*MCSUP>
+           
         end % set.ori
         function obj = set.r(obj,val)
             obj.oldr=obj.r;
@@ -173,8 +181,10 @@ classdef onecell
             end
             obj.r = val;
             obj.current=0;
+
         end % set.r
         function obj = set.pixelsize(obj,val)
+            obj.oldpixelsize=obj.pixelsize;
             if ~isa(val,'double')
                 error('pixelsize must be of class double')
             end
@@ -203,6 +213,20 @@ classdef onecell
             obj.angle = val;
             obj.current=0;
         end % set.angle
+                
+        function obj = check(obj)
+            % check Checks to see if the cell needs to be refreshed
+            if obj.current==0;
+                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
+                if isempty(reply)
+                    reply = 'Y';
+                end
+                if strcmpi(reply,'Y')
+                    obj=obj.refresh_cell();
+                    obj.current
+                end
+            end
+        end
         
         %get information about the cell
         function val = get.l(obj)
@@ -257,7 +281,7 @@ classdef onecell
             obj.numofmol=val;
             obj.mol=molecules(obj,val);
             obj.pts=[obj.mol.x obj.mol.y];
-            obj.current=0;
+            obj=refresh_all(obj);
         end
         function obj = label(obj)
             % label Labels the molecules with flurophores
@@ -322,66 +346,73 @@ classdef onecell
         end
 
         %Show the cell
-        function imshow(obj)
+        function obj=imshow(obj)
             % IMSHOW Specifies the way that imshow displays the onecell object
-            if obj.current==0;
-                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
-                if isempty(reply)
-                    reply = 'Y';
-                end
-                if strcmp(reply,'Y')
-                    obj=obj.refresh_all();
-                end
-            end
+            obj=check(obj);
             if isempty(obj.img)
-                plot(obj.fl(:,1),obj.fl(:,2),'o');
+                plot(obj.fl(:,1),obj.fl(:,2),'o');axis equal;axis tight;
             else
-               imshow(mat2gray(flipud(obj.img')));
-               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,obj.r*2,obj.l,obj.pixelsize),'FontWeight','bold');
+               imshow(mat2gray(flipud(obj.img')));axis equal;axis tight;
+               if obj.current==1
+                   r=obj.r; %#ok<*PROP>
+                   l=obj.l;
+                   px=obj.pixelsize;
+               else
+                   px=obj.oldpixelsize;
+                   r=obj.oldr;
+                   l=obj.oldl;
+               end
+               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,r*2,l,px),'FontWeight','bold');
             end
         end %imshow
-        function imagesc(obj)
+        function obj=imagesc(obj)
             % IMAGESC Specifies the way that imagesc displays the onecell object. Uses a color bar and labels
-            if obj.current==0;
-                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
-                if isempty(reply)
-                    reply = 'Y';
-                end
-                if strcmp(reply,'Y')
-                    obj=obj.refresh_all();
-                end
-            end
+            obj=check(obj);
             if isempty(obj.img)
                 plot(obj.fl(:,1),obj.fl(:,2),'o');
             else
-               imagesc(obj.img');colormap('gray');colorbar;%axis equal;axis tight;
-               xlabel(sprintf('One pixel = %i^2 nm',obj.pixelsize));
-               ylabel(sprintf('One pixel = %i^2 nm',obj.pixelsize));
-               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,obj.r*2,obj.l,obj.pixelsize),'FontWeight','bold');
+               imagesc(obj.img');colormap('gray');colorbar; axis equal;axis tight;
+               if obj.current==1
+                   r=obj.r; %#ok<*PROP>
+                   l=obj.l;
+                   px=obj.pixelsize;
+               else
+                   px=obj.oldpixelsize;
+                   r=obj.oldr;
+                   l=obj.oldl;
+               end
+%                xlabel(sprintf('One pixel = %i^2 nm',px));
+%                ylabel(sprintf('One pixel = %i^2 nm',px));
+               title(sprintf('%i molecules in a %i nm by %i nm cell \nResolution: %i nm^2 / pixel',obj.numofmol,r*2,l,px),'FontWeight','bold');
             end
         end %imagesc
-        function plot(obj)
+        function obj=plot(obj)
             % PLOT  Specifies the way that plot displays the onecell object. When plotted the fluorophores are plotted so that they could be overlaid onto a cell
-            if obj.current==0;
-                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
-                if isempty(reply)
-                    reply = 'Y';
-                end
-                if strcmp(reply,'Y')
-                    obj=obj.refresh_all();
-                end
-            end
-%             (obj.fl(:,1)-obj.ori(1))-(1-cos(obj.angle*pi/180))
-            if strcmp(obj.algo,'sc')
-                plot(obj.fl(:,1)/obj.pixelsize+obj.l/2/obj.pixelsize*.3,obj.fl(:,2)/obj.pixelsize+obj.r/2/obj.pixelsize*.3,'o');
+ 
+            %             (obj.fl(:,1)-obj.ori(1))-(1-cos(obj.angle*pi/180))
+            obj=check(obj);
+            if obj.current==1
+                r=obj.r; %#ok<*PROP>
+                l=obj.l;
+                px=obj.pixelsize;
             else
-                plot(obj.fl(:,1)/obj.pixelsize+obj.l/obj.pixelsize*.3,obj.fl(:,2)/obj.pixelsize+obj.r/obj.pixelsize*.3,'o');
+                px=obj.oldpixelsize;
+                r=obj.oldr;
+                l=obj.oldl;
             end
-%             if strcmp(obj.algo,'sc')
-%                 plot(obj.fl(:,1)/obj.pixelsize,obj.fl(:,2)/obj.pixelsize,'o');
-%             else
-%                 plot(obj.fl(:,1)/obj.pixelsize,obj.fl(:,2)/obj.pixelsize,'o');
-%             end
+            if isempty(obj.img)
+                if strcmp(obj.algo,'sc')
+                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,'o');axis equal;axis tight;
+                else
+                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,'o');axis equal;axis tight;
+                end
+            else
+                if strcmp(obj.algo,'sc')
+                    plot(obj.fl(:,1)/px+l/2/px*.3,obj.fl(:,2)/px+r/2/px*.3,'o');axis equal;axis tight;
+                else
+                    plot(obj.fl(:,1)/px+l/px*.3,obj.fl(:,2)/px+r/px*.3,'o');axis equal;axis tight;
+                end
+            end
         end % plot
         
     end % methods
