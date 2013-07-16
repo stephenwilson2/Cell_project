@@ -73,6 +73,42 @@ classdef onecell
        oldori
     end
     
+    methods(Static)
+        function bool=sphere(obj,x,y,z,varargin)
+            if isempty(varargin)
+                r=obj.r;
+            else
+                r=varargin{1};
+            end
+            X=asin((abs(x-r)^2+abs(y-obj.r)^2)^0.5/obj.r);
+            Z=asin((abs(x-r)^2+abs(z-obj.r)^2)^0.5/obj.r);
+            Z2=asin((abs(y-obj.r)^2+abs(z-obj.r)^2)^0.5/obj.r);
+            if isreal(X) && isreal(Z) && isreal(Z2)
+                bool=1;
+            else
+                bool=0;
+            end                
+        end
+            
+        function bool=box(obj,x,y,z,varargin)
+            if isempty(varargin)
+                shift=0;
+            else
+                shift=varargin{1};
+            end
+            X=(asin((x-shift)/(obj.l)))^0.5;
+            X2=(asin((x+shift)/(obj.l)))^0.5;
+            Y=(asin((y)/(obj.r*2)))^0.5;
+            Z=(asin((z)/(obj.r*2)))^0.5;
+            if isreal(X) && isreal(Y) && isreal(Z) && isreal(X2)
+                bool=1;
+            else
+                bool=0;
+            end
+        end
+    end
+    
+    
     % Class methods
     methods
         function obj = onecell(varargin)
@@ -93,7 +129,7 @@ classdef onecell
             obj.algo = cell2mat(optargs(4));
             obj.pixelsize = cell2mat(optargs(5));
             if isempty(cell2mat(optargs(6)))
-                obj.ori = [obj.r,obj.l];
+                obj.ori = [obj.r,obj.l,obj.r];
             else
                 obj.ori = cell2mat(optargs(6));
             end
@@ -104,16 +140,15 @@ classdef onecell
             if obj.algo=='c'
                 obj.l=obj.r;
             elseif strcmp(obj.algo,'sc')
-                obj.ori=obj.ori-[obj.r,obj.l];
+                obj.ori=obj.ori-[obj.r,obj.l,obj.r];
                 obj.l=obj.l*2;
-                
             end
             
             if strcmp(obj.algo,'sc') && obj.l<obj.r*3
                 error('Spherocylinders need to be long... Increase the length of the cell to at least 3 times the length.');
             end
             obj=obj.addMolecules(obj.numofmol);
-            obj=refresh_all(obj);
+%             obj=refresh_all(obj);
         end %onecell
         
         function obj=refresh_all(obj)
@@ -171,8 +206,8 @@ classdef onecell
             end
             obj.ori(1)=val(1);
             obj.ori(2)=val(2);
+            obj.ori(3)=val(3);
             obj.current=0; %#ok<*MCSUP>
-           
         end % set.ori
         function obj = set.r(obj,val)
             obj.oldr=obj.r;
@@ -242,45 +277,33 @@ classdef onecell
             val=obj.ori;
         end % get.ori
         
-        function val = incell(obj,x,y)
-            %INCELL Checks to see if point [x,y] is in the cell
+        function val = incell(obj,x,y,z)
+            %INCELL Checks to see if point [x,y,z] is in the cell
             %the cell or not.
             %It returns a 0 if it is not and a 1 if it is.
             if strcmp(obj.algo,'s')
-                X=asin((x)/obj.r);
-                Y=acos((y)/obj.l);
-                if isreal(X) || isreal(Y)
-                    val=1;
-                else
-                    val=0;
-                end
+                val= obj.box(obj,x,y,z);
             elseif strcmp(obj.algo,'c')
-                 X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);
-                 if isreal(X)
-                    val=1;
-                else
-                    val=0;
-                 end
+                val=obj.sphere(obj,x,y,z);
             elseif strcmp(obj.algo,'sc')
-                X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the circle closer at r
-                Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce l-r
-                X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
-                Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
-                if (isreal(X) || isreal(Y))||(isreal(X1) || isreal(Y2))
+                val1=obj.sphere(obj,x,y,z,obj.r);%the circle closer at r
+                val2=obj.sphere(obj,x,y,z,obj.l-obj.r);
+                val3=obj.box(obj,x,y,z,obj.r);
+                if val1 || val2 || val3
                     val=1;
                 else
                     val=0;
                 end
             end
-            
         end %incell(x,y)
+        
         
         %Adjusts or adds to the cell
         function obj = addMolecules(obj,val)
             %addMolecules Adds a given integer number molecules to the cell
             obj.numofmol=val;
             obj.mol=molecules(obj,val);
-            obj.pts=[obj.mol.x obj.mol.y];
+            obj.pts=[obj.mol.x obj.mol.y obj.mol.z];
             obj=refresh_all(obj);
         end
         function obj = label(obj)
