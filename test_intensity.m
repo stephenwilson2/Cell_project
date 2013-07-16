@@ -2,7 +2,7 @@ function test_intensity()
     clear all;
     close all;
     if ~isequal(exist('test_intensity.mat','file'),2)
-        datapts=20;
+        datapts=200;
         molpcell=round(1:1:200);
         r=250;
         w=1000;
