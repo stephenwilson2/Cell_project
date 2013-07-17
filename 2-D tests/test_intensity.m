@@ -46,13 +46,13 @@ function analyze(cells,pts)
     hold off;
     title('Variance compared to number of molecules',...
         'FontWeight','bold')
-    xlabel('Mean Pixel Intensity')
-    ylabel('Variance')
+    xlabel('Mean Pixel Intensity (1/pixel)')
+    ylabel('Variance (1/pixel^2)')
 
     n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
     legend('Simulation with PSF',n1)
     
-    saveas(gcf, 'TestIntensity.fig')
+%     saveas(gcf, 'TestIntensity.fig')
     
-    save('test_intensity','-append','pairpsf')
+%     save('test_intensity','-append','pairpsf')
 end

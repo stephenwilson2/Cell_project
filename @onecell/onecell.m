@@ -6,14 +6,15 @@ classdef onecell
     %    - r: The radius of the cell
     %    - l: The length of the cell (this is half the actual length)
     %    - algo: Selects for the type of cell to be used. Inputs are:
-    %        - 'c': circle
-    %        - 's': square (or rectangle)
+    %        - 's': sphere
+    %        - 'b': box (or rectangle)
     %        - 'sc': spherocylinder
     %    - pixelsize: Gives the size in nm^2 of the camerapixel
     %    - ori: States the origin of the cell in nm. 
-    %        - 's' and 'c' cells are set to [r,l] by default
+    %        - 'b' and 's' cells are set to [r,l] by default
     %        - 'sc' cells are set to [0,0] by default
     %    - gopsf: If set to 1, the PSF is applied to the fluorophores. If set to 0, the PSF is not set
+    %    - sections: This is the number of the z-sections that will be automatically calculated
     %    - angle: Gives the angle to rotate the cell in degrees
     %
     %Variables:
@@ -24,7 +25,7 @@ classdef onecell
     %
     %The following variables are accessible to the user but cannot be directly changed:
     %    - mol: This stores the molecules object. There should be functions in onecell to manipulate the molecules object.
-    %    - img: Stores the image matrix
+    %    - img: Stores cells that contain the image matricies
     %    - pts: Stores the locations of the molecules as pairs of points
     %    - fl: Stores the locations of the fluorophores as pairs of points
     %    - cellmask: Stores an image of the cell's mask. Must be constructed with the cell_mask function
@@ -51,15 +52,16 @@ classdef onecell
         l=1000; % The length of the cell (this is half the actual length)
         numofmol=10; %The number of molecules to be added to the cell
         angle=0; %Gives the angle to rotate the cell in degrees
-        algo='sc'; %Selects for the type of cell to be used. Inputs are: - 'c': circle - 's': square (or rectangle)- 'sc': spherocylinder
-        ori %States the origin of the cell in nm. - 's' and 'c' cells are set to [r,l] by default - 'sc' cells are set to [0,0] by default
+        algo='sc'; %Selects for the type of cell to be used. Inputs are: - 's': sphere - 'b': box (or rectangle)- 'sc': spherocylinder
+        ori %States the origin of the cell in nm. - 'b' and 's' cells are set to [r,l,r] by default - 'sc' cells are set to [r,l,r] by default
         pixelsize=64;%Gives the size in nm^2 of the camerapixel
         gopsf=1;%If set to 1, the PSF is applied to the fluorophores. If set to 0, the PSF is not set
+        sections=8;%This is the number of the z-sections that will be automatically calculated
     end
     
     properties (SetAccess=private)
         mol %This stores the molecules object. There should be functions in onecell to manipulate the molecules object.
-        img=[]; %Stores the image matrix
+        img; %Stores cells that contain the image matricies
         pts=[]; %Stores the locations of the molecules as pairs of points
         fl=[]; %Stores the locations of the fluorophores as pairs of points
         cellmask=[]; %Stores an image of the cell's mask. Must be constructed with the cell_mask function
@@ -108,17 +110,16 @@ classdef onecell
         end
     end
     
-    
     % Class methods
     methods
         function obj = onecell(varargin)
             % Sets defaults for optional inputs in order: numofmol,r,l,algo,pixelsize,ori,gopsf,angle
-            optargs = {obj.numofmol,obj.r,obj.l,obj.algo,obj.pixelsize,obj.ori,obj.gopsf,obj.angle};
+            optargs = {obj.numofmol,obj.r,obj.l,obj.algo,obj.pixelsize,obj.ori,obj.gopsf,obj.sections,obj.angle};
             
-            % Checks to ensure 8 optional inputs at most
+            % Checks to ensure 9 optional inputs at most
             numvarargs = length(varargin);
-            if numvarargs > 8
-                error('Takes at most 8 optional inputs');
+            if numvarargs > 9
+                error('Takes at most 9 optional inputs');
             end
             
             % Overwrites defaults if optional input exists
@@ -134,10 +135,11 @@ classdef onecell
                 obj.ori = cell2mat(optargs(6));
             end
             obj.gopsf = cell2mat(optargs(7));
-            obj.angle = cell2mat(optargs(8));
+            obj.sections = cell2mat(optargs(8));
+            obj.angle = cell2mat(optargs(9));
             
             % Construct a onccell object
-            if obj.algo=='c'
+            if obj.algo=='s'
                 obj.l=obj.r;
             elseif strcmp(obj.algo,'sc')
                 obj.ori=obj.ori-[obj.r,obj.l,obj.r];
@@ -148,7 +150,6 @@ classdef onecell
                 error('Spherocylinders need to be long... Increase the length of the cell to at least 3 times the length.');
             end
             obj=obj.addMolecules(obj.numofmol);
-%             obj=refresh_all(obj);
         end %onecell
         
         function obj=refresh_all(obj)
@@ -248,11 +249,18 @@ classdef onecell
             obj.angle = val;
             obj.current=0;
         end % set.angle
-                
+        function obj = set.sections(obj,val)
+            if ~isa(val,'double')
+                error('Sections must be of class double')
+            end
+            obj.sections = val;
+            obj.current=0;
+        end % set.sections
+        
         function obj = check(obj)
             % check Checks to see if the cell needs to be refreshed
             if obj.current==0;
-                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
+                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 'b');
                 if isempty(reply)
                     reply = 'Y';
                 end
@@ -281,12 +289,12 @@ classdef onecell
             %INCELL Checks to see if point [x,y,z] is in the cell
             %the cell or not.
             %It returns a 0 if it is not and a 1 if it is.
-            if strcmp(obj.algo,'s')
+            if strcmp(obj.algo,'b')
                 val= obj.box(obj,x,y,z);
-            elseif strcmp(obj.algo,'c')
+            elseif strcmp(obj.algo,'s')
                 val=obj.sphere(obj,x,y,z);
             elseif strcmp(obj.algo,'sc')
-                val1=obj.sphere(obj,x,y,z,obj.r);%the circle closer at r
+                val1=obj.sphere(obj,x,y,z,obj.r);%the sphere closer at r
                 val2=obj.sphere(obj,x,y,z,obj.l-obj.r);
                 val3=obj.box(obj,x,y,z,obj.r);
                 if val1 || val2 || val3
@@ -314,17 +322,15 @@ classdef onecell
         end
         function obj = applyPSF(obj)
             %applyPSF Applies the PSF and creates onecell's img
-            obj.img=psf(obj,obj.pixelsize).img;
+            obj.img=psf(obj,obj.pixelsize,obj.sections).img;
             obj.current=0;
-%             obj.img
         end
         function obj = rotate(obj)
-            if ~isempty(obj.img)
-                obj.img=imrotate(obj.img, obj.angle);
-            else
-                disp('Not rotating, because there is no image to rotate')
+            for i=1:length(obj.img)
+                if ~isempty(obj.img{i})
+                    obj.img{i}=imrotate(obj.img{i}, obj.angle);
+                end
             end
-            
         end
         function obj = cell_mask(obj)
             %cell_mask Creates a cell mask stored under onecell as cellmask
@@ -338,7 +344,7 @@ classdef onecell
             pt=[];
             for x=1:1:obj.r
                 for y=1:1:obj.r
-                    X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the circle closer at r
+                    X=asin((abs(x-obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the sphere closer at r
                     Y=asin((abs(x-obj.l+obj.r)^2+abs(y-obj.r)^2)^0.5/obj.r);%the cirlce at l-r
                     X1=(asin((x-obj.r)/(obj.l-obj.r*2)))^0.5;
                     Y2=(acos((y-obj.l-obj.r)/(2*obj.r))^0.5);
@@ -373,28 +379,50 @@ classdef onecell
             % IMSHOW Specifies the way that imshow displays the onecell object
             obj=check(obj);
             if isempty(obj.img)
-                plot(obj.fl(:,1),obj.fl(:,2),'o');axis equal;axis tight;
+                plot(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');axis equal;axis tight;
             else
-               imshow(mat2gray(flipud(obj.img')));axis equal;axis tight;
-               if obj.current==1
-                   r=obj.r; %#ok<*PROP>
-                   l=obj.l;
-                   px=obj.pixelsize;
-               else
-                   px=obj.oldpixelsize;
-                   r=obj.oldr;
-                   l=obj.oldl;
+                n=0;                
+                if obj.current==1
+                    r=obj.r; %#ok<*PROP>
+                    l=obj.l;
+                    px=obj.pixelsize;
+                else
+                    px=obj.oldpixelsize;
+                    r=obj.oldr;
+                    l=obj.oldl;
+                end
+                mi=1;
+                ma=0;
+                for i=1:length(obj.img)
+                    if ~isempty(obj.img{i})
+                        tmin=min(min(obj.img{i}));
+                        tmax=max(max(obj.img{i}));
+                        if tmin<mi
+                            mi=tmin;
+                        end
+                        if tmax>ma
+                            ma=tmax;
+                        end
+                    end
+                end
+                
+               for i=1:length(obj.img)
+                    if ~isempty(obj.img{i})
+                        n=n+1;
+                        figure(1);
+                        subplot(obj.sections,1,n)
+                        imshow(flipud(obj.img{i}'),[mi ma]);colormap(gray);colorbar;axis equal;axis tight;
+                        title(sprintf('%i molecules in a %i nm by %i nm by %i nm cell\n Depth: %i nm Resolution: %i^2 nm^2 / pixel',obj.numofmol,r*2,l,r*2,round(planes(n)),px),'FontWeight','bold');
+                    end
                end
-               title(sprintf('%i molecules in a %i nm by %i nm \nResolution: %i nm^2 / pixel',obj.numofmol,r*2,l,px),'FontWeight','bold');
             end
         end %imshow
         function obj=imagesc(obj)
             % IMAGESC Specifies the way that imagesc displays the onecell object. Uses a color bar and labels
             obj=check(obj);
             if isempty(obj.img)
-                plot(obj.fl(:,1),obj.fl(:,2),'o');
+                plot(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');
             else
-               imagesc(obj.img');colormap('gray');colorbar; axis equal;axis tight;
                if obj.current==1
                    r=obj.r; %#ok<*PROP>
                    l=obj.l;
@@ -404,9 +432,18 @@ classdef onecell
                    r=obj.oldr;
                    l=obj.oldl;
                end
-%                xlabel(sprintf('One pixel = %i^2 nm',px));
-%                ylabel(sprintf('One pixel = %i^2 nm',px));
-               title(sprintf('%i molecules in a %i nm by %i nm cell \nResolution: %i nm^2 / pixel',obj.numofmol,r*2,l,px),'FontWeight','bold');
+               n=0;
+               planes=linspace(1,obj.r*2,obj.sections);
+               for i=1:length(obj.img)
+                    if ~isempty(obj.img{i})
+                        n=n+1;
+                        figure(1);
+                        subplot(obj.sections,1,n)
+                        imagesc(obj.img{i}');colormap(gray);colorbar;axis equal;axis tight;
+                        title(sprintf('%i molecules in a %i nm by %i nm by %i nm cell\n Depth: %i nm Resolution: %i^2 nm^2 / pixel',obj.numofmol,r*2,l,r*2,round(planes(n)),px),'FontWeight','bold');
+                    end
+               end
+ 
             end
         end %imagesc
         function obj=plot(obj)
@@ -425,15 +462,15 @@ classdef onecell
             end
             if isempty(obj.img)
                 if strcmp(obj.algo,'sc')
-                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,'o');axis equal;axis tight;
+                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,obj.fl(:,3)/px,'o');axis equal;axis tight;
                 else
-                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,'o');axis equal;axis tight;
+                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,obj.fl(:,3)/px,'o');axis equal;axis tight;
                 end
             else
                 if strcmp(obj.algo,'sc')
-                    plot(obj.fl(:,1)/px+l/2/px*.3,obj.fl(:,2)/px+r/2/px*.3,'o');axis equal;axis tight;
+                    plot(obj.fl(:,1)/px+l/2/px*.3,obj.fl(:,2)/px+r/2/px*.3,obj.fl(:,3)/px+r/2/px*.3,'o');axis equal;axis tight;
                 else
-                    plot(obj.fl(:,1)/px+l/px*.3,obj.fl(:,2)/px+r/px*.3,'o');axis equal;axis tight;
+                    plot(obj.fl(:,1)/px+l/px*.3,obj.fl(:,2)/px+r/px*.3,obj.fl(:,3)/px+r/px*.3,'o');axis equal;axis tight;
                 end
             end
         end % plot
