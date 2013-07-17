@@ -57,6 +57,7 @@ classdef onecell
         pixelsize=64;%Gives the size in nm^2 of the camerapixel
         gopsf=1;%If set to 1, the PSF is applied to the fluorophores. If set to 0, the PSF is not set
         sections=8;%This is the number of the z-sections that will be automatically calculated
+        PSF;
     end
     
     properties (SetAccess=private)
@@ -322,7 +323,8 @@ classdef onecell
         end
         function obj = applyPSF(obj)
             %applyPSF Applies the PSF and creates onecell's img
-            obj.img=psf(obj,obj.pixelsize,obj.sections).img;
+            obj.PSF=psf(obj,obj.pixelsize,obj.sections);
+            obj.img=obj.PSF.img;
             obj.current=0;
         end
         function obj = rotate(obj)

@@ -93,7 +93,6 @@ classdef psf
                 if z>size(im,2)
                     z=z-1;
                 end
-                norm=1/gaussDistribution(z,z,obj.sigmaz/obj.pxsz);
                 %Spread contributions for that pt in the plane
                 for x=1:size(im,1)
                     tmp(x,y)=tmp(x,y)+...
