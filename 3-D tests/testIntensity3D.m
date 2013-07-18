@@ -20,13 +20,15 @@ function testIntensity3D()
 end
 
 function analyze(cells,pts,molpcell)
+    e=0;
     pairpsf(length(cells)/pts+1,3)=0;
     for i=1:length(cells)/pts
         V=zeros(pts,1);
         n=zeros(pts,1);
         for o=1:pts
-            V(o)=var(cells{i+o}.img{1}(:));
-            n(o)=mean(cells{i+o}.img{1}(:));
+            e=e+1;
+            V(o)=var(cells{e}.img{1}(:));
+            n(o)=mean(cells{e}.img{1}(:));
         end
         pairpsf(i,1)=mean(n);
         pairpsf(i,2)=mean(V);

@@ -133,7 +133,7 @@ classdef onecell
             if isempty(cell2mat(optargs(6)))
                 obj.ori = [obj.r,obj.l,obj.r];
             else
-                obj.ori = cell2mat(optargs(6));
+                obj.ori = cell2mat(optargs(6));                
             end
             obj.gopsf = cell2mat(optargs(7));
             obj.sections = cell2mat(optargs(8));
@@ -379,7 +379,7 @@ classdef onecell
             % IMSHOW Specifies the way that imshow displays the onecell object
             obj=check(obj);
             if isempty(obj.img)
-                plot(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');axis equal;axis tight;
+                plot3(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');axis equal;axis tight;
             else
                 n=0;                
                 if obj.current==1
@@ -390,6 +390,9 @@ classdef onecell
                     px=obj.oldpixelsize;
                     r=obj.oldr;
                     l=obj.oldl;
+                end
+                if strcmp(obj.algo,'s')
+                    l=l*2;
                 end
                 mi=1;
                 ma=0;
@@ -429,13 +432,15 @@ classdef onecell
                 r=obj.oldr;
                 l=obj.oldl;
             end
+            if strcmp(obj.algo,'s')
+                    l=l*2;
+            end
             planes=linspace(1,obj.r*2,obj.sections);
             n=0;
             for i=1:length(obj.img)
                 if ~isempty(obj.img{i})
                     n=n+1;
                     if n==num
-                        obj.img
                         imshow(flipud(obj.img{num}'),[min(min(obj.img{num})) max(max(obj.img{num}))]);colormap(gray);colorbar;axis equal;axis tight;
                         title(sprintf('%i molecules in a %i nm by %i nm by %i nm cell\n Depth: %i nm Resolution: %i^2 nm^2 / pixel',obj.numofmol,r*2,l,r*2,round(planes(n)),px),'FontWeight','bold');
                     end
@@ -446,7 +451,7 @@ classdef onecell
             %surf Displays the onecell object's slices in 3-D
             obj=check(obj);
             if isempty(obj.img)
-                plot(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');axis equal;axis tight;
+                plot3(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');axis equal;axis tight;
             else
                 n=0;                
                 if obj.current==1
@@ -458,7 +463,9 @@ classdef onecell
                     r=obj.oldr;
                     l=obj.oldl;
                 end
-                
+                if strcmp(obj.algo,'s')
+                    l=l*2;
+                end
                 mi=1;
                 ma=0;
                 for i=1:length(obj.img)
@@ -493,7 +500,7 @@ classdef onecell
             % IMAGESC Specifies the way that imagesc displays the onecell object. Uses a color bar and labels
             obj=check(obj);
             if isempty(obj.img)
-                plot(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');
+                plot3(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');
             else
                if obj.current==1
                    r=obj.r; %#ok<*PROP>
@@ -503,6 +510,9 @@ classdef onecell
                    px=obj.oldpixelsize;
                    r=obj.oldr;
                    l=obj.oldl;
+               end
+               if strcmp(obj.algo,'s')
+                    l=l*2;
                end
                n=0;
                planes=linspace(1,obj.r*2,obj.sections);
@@ -534,15 +544,15 @@ classdef onecell
             end
             if isempty(obj.img)
                 if strcmp(obj.algo,'sc')
-                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,obj.fl(:,3)/px,'o');axis equal;axis tight;
+                    plot3(obj.fl(:,1)/px,obj.fl(:,2)/px,obj.fl(:,3)/px,'o');axis equal;axis tight;
                 else
-                    plot(obj.fl(:,1)/px,obj.fl(:,2)/px,obj.fl(:,3)/px,'o');axis equal;axis tight;
+                    plot3(obj.fl(:,1)/px,obj.fl(:,2)/px,obj.fl(:,3)/px,'o');axis equal;axis tight;
                 end
             else
                 if strcmp(obj.algo,'sc')
-                    plot(obj.fl(:,1)/px+l/2/px*.3,obj.fl(:,2)/px+r/2/px*.3,obj.fl(:,3)/px+r/2/px*.3,'o');axis equal;axis tight;
+                    plot3(obj.fl(:,1)/px+l/2/px*.3,obj.fl(:,2)/px+r/2/px*.3,obj.fl(:,3)/px+r/2/px*.3,'o');axis equal;axis tight;
                 else
-                    plot(obj.fl(:,1)/px+l/px*.3,obj.fl(:,2)/px+r/px*.3,obj.fl(:,3)/px+r/px*.3,'o');axis equal;axis tight;
+                    plot3(obj.fl(:,1)/px+l/px*.3,obj.fl(:,2)/px+r/px*.3,obj.fl(:,3)/px+r/px*.3,'o');axis equal;axis tight;
                 end
             end
         end % plot

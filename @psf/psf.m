@@ -81,9 +81,22 @@ classdef psf
         function obj = applyPSF(obj,cel,currentplane)
             %applyPSF Takes the PSF object, the onecells object, and the
             % z-plane (in nm) plane to be simulated.
-            im=zeros(round(cel.l*2/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));%creates blank matrix of the camera pixel size
+            if strcmp(cel.algo,'sc')
+                im=zeros(round(cel.l*2/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));%creates blank matrix of the camera pixel size
+            elseif strcmp(cel.algo,'b')
+                im=zeros(round(cel.l/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));%creates blank matrix of the camera pixel size
+            else
+                im=zeros(round(cel.r*2/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));
+            end
             for i=1:size(obj.fl,1)
-                tmp=zeros(round(cel.l*2/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));
+                if strcmp(cel.algo,'sc')
+                    tmp=zeros(round(cel.l*2/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));
+                elseif strcmp(cel.algo,'b')
+                    tmp=zeros(round(cel.l/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));
+                else
+                    tmp=zeros(round(cel.r*2/obj.pxsz*1.3),round(cel.r*2/obj.pxsz*1.3));
+                end
+                
                 mu=obj.fl(i,1);% value in X
                 y=ceil(obj.fl(i,2)); % value in Y
                 if y>size(im,2)
