@@ -338,8 +338,6 @@ classdef onecell
             %cell_mask Creates a cell mask stored under onecell as cellmask
             if strcmp(obj.algo,'sc')
                 obj.cellmask=zeros(round(obj.l/obj.pixelsize),round(obj.r*2/obj.pixelsize)/2);
-                tmpl=obj.l/2;
-                
             else
                 error('Only Spherocylinders currently supported')
             end
@@ -407,7 +405,7 @@ classdef onecell
                         end
                     end
                 end
-                
+               planes=linspace(1,obj.r*2,obj.sections);
                for i=1:length(obj.img)
                     if ~isempty(obj.img{i})
                         n=n+1;
@@ -419,6 +417,78 @@ classdef onecell
                end
             end
         end %imshow
+        function obj=showslice(obj,num)
+            %showslice This function displays a single z-slice at the given
+            %depth.
+            if obj.current==1
+                r=obj.r; %#ok<*PROP>
+                l=obj.l;
+                px=obj.pixelsize;
+            else
+                px=obj.oldpixelsize;
+                r=obj.oldr;
+                l=obj.oldl;
+            end
+            planes=linspace(1,obj.r*2,obj.sections);
+            n=0;
+            for i=1:length(obj.img)
+                if ~isempty(obj.img{i})
+                    n=n+1;
+                    if n==num
+                        obj.img
+                        imshow(flipud(obj.img{num}'),[min(min(obj.img{num})) max(max(obj.img{num}))]);colormap(gray);colorbar;axis equal;axis tight;
+                        title(sprintf('%i molecules in a %i nm by %i nm by %i nm cell\n Depth: %i nm Resolution: %i^2 nm^2 / pixel',obj.numofmol,r*2,l,r*2,round(planes(n)),px),'FontWeight','bold');
+                    end
+                end
+            end
+        end
+        function obj=surf(obj)
+            %surf Displays the onecell object's slices in 3-D
+            obj=check(obj);
+            if isempty(obj.img)
+                plot(obj.fl(:,1),obj.fl(:,2),obj.fl(:,3),'o');axis equal;axis tight;
+            else
+                n=0;                
+                if obj.current==1
+                    r=obj.r; %#ok<*PROP>
+                    l=obj.l;
+                    px=obj.pixelsize;
+                else
+                    px=obj.oldpixelsize;
+                    r=obj.oldr;
+                    l=obj.oldl;
+                end
+                
+                mi=1;
+                ma=0;
+                for i=1:length(obj.img)
+                    if ~isempty(obj.img{i})
+                        tmin=min(min(obj.img{i}));
+                        tmax=max(max(obj.img{i}));
+                        if tmin<mi
+                            mi=tmin;
+                        end
+                        if tmax>ma
+                            ma=tmax;
+                        end
+                    end
+                end
+                planes=linspace(1,obj.r*2,obj.sections);
+                for i=1:length(obj.img)
+                    if ~isempty(obj.img{i})
+                        n=n+1;
+                        figure(1);
+                        subplot(4,obj.sections/4,n)
+                        colormap(gray);
+                        [x,y] = meshgrid(1:1:size(obj.img{i},2),1:1:size(obj.img{i},1));
+                        z=obj.img{i};
+                        surf(x,y,z)
+                        view([100,64]);axis tight;axis([1 size(obj.img{1},2) 1 size(obj.img{1},1) mi ma]);
+                        title(sprintf('%i molecules in a %i nm by %i nm by %i nm cell\n Depth: %i nm Resolution: %i^2 nm^2 / pixel',obj.numofmol,r*2,l,r*2,round(planes(n)),px),'FontWeight','bold');
+                    end
+               end
+            end          
+        end
         function obj=imagesc(obj)
             % IMAGESC Specifies the way that imagesc displays the onecell object. Uses a color bar and labels
             obj=check(obj);

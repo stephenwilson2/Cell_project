@@ -1,7 +1,7 @@
-function testIntensity3D(datapts,num)
-    if ~isequal(exist('testIntensity3D.mat','file'),2)
-%         datapts=20;
-        molpcell=round(1:1:200);
+function testIntensity3D()        
+    datapts=2;
+    molpcell=round(1:10:1000);
+    if ~isequal(exist(sprintf('testIntensity3D_%i_%i.mat',datapts,max(molpcell)),'file'),2)
         r=250;
         w=1000;
         c=cell(datapts,1);
@@ -12,14 +12,14 @@ function testIntensity3D(datapts,num)
                 c{i}=onecell(numofmol,r,w,'sc',64);
             end
         end
-        save(sprintf('testIntensity3D%i',num))
+        save(sprintf('testIntensity3D_%i_%i',datapts,max(molpcell)))
     else
-        load(sprintf('testIntensity3D%i',num))
+        load(sprintf('testIntensity3D_%i_%i',datapts,max(molpcell)))
     end
-    analyze(c,datapts);
+    analyze(c,datapts,molpcell);
 end
 
-function analyze(cells,pts)
+function analyze(cells,pts,molpcell)
     pairpsf(length(cells)/pts+1,3)=0;
     for i=1:length(cells)/pts
         V=zeros(pts,1);
@@ -50,7 +50,7 @@ function analyze(cells,pts)
     n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
     legend('Simulation with PSF',n1)
     
-    saveas(gcf, 'TestIntensity3D.fig')
+    saveas(gcf, sprintf('testIntensity3D_%i_%i.fig',pts,max(molpcell)))
     
-%     save(sprintf('testIntensity3D','-append','pairpsf')
+    save(sprintf('testIntensity3D_%i_%i',pts,max(molpcell)),'-append','pairpsf')
 end
