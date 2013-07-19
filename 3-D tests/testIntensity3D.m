@@ -53,8 +53,8 @@ function analyze(cells,pts,molpcell)
     xlabel('Mean Pixel Intensity (1/pixel)')
     ylabel('Variance (1/pixel^2)')
 
-    n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
-    n2=sprintf('Theoretical slope: %d',theok);
+    n1=sprintf('Fit-Slope: %d photons/pixel \n Intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
+    n2=sprintf('Theoretical Slope: %d photons/pixel',theok);
     legend('Simulation with PSF',n1,n2)
     
     saveas(gcf, sprintf('testIntensity3D_%i_%i.fig',pts,max(molpcell)))

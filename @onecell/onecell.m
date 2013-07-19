@@ -92,7 +92,21 @@ classdef onecell
                 bool=0;
             end                
         end
-            
+        function bool=cylinder(obj,x,y,z,varargin)
+            if isempty(varargin)
+                r=obj.r;
+            else
+                r=varargin{1};
+            end
+            X=asin((abs(x-r)^2+abs(y-obj.r)^2)^0.5/(obj.l/2-obj.r));
+            Z=asin((abs(x-r)^2+abs(z-obj.r)^2)^0.5/(obj.l/2-obj.r));
+            Z2=asin((abs(y-obj.r)^2+abs(z-obj.r)^2)^0.5/obj.r);
+            if isreal(X) && isreal(Z) && isreal(Z2)
+                bool=1;
+            else
+                bool=0;
+            end      
+        end
         function bool=box(obj,x,y,z,varargin)
             if isempty(varargin)
                 shift=0;
@@ -261,7 +275,7 @@ classdef onecell
         function obj = check(obj)
             % check Checks to see if the cell needs to be refreshed
             if obj.current==0;
-                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 'b');
+                reply = input('Cell not current, refresh cell? Y/N [Y]: ', 's');
                 if isempty(reply)
                     reply = 'Y';
                 end
@@ -297,8 +311,8 @@ classdef onecell
             elseif strcmp(obj.algo,'sc')
                 val1=obj.sphere(obj,x,y,z,obj.r);%the sphere closer at r
                 val2=obj.sphere(obj,x,y,z,obj.l-obj.r);
-                val3=obj.box(obj,x,y,z,obj.r);
-                if val1 || val2 || val3
+                val3=obj.cylinder(obj,x,y,z,obj.l/2);
+                if  val1 || val2 ||val3
                     val=1;
                 else
                     val=0;
@@ -420,7 +434,10 @@ classdef onecell
                end
             end
         end %imshow
-        function obj=showslice(obj,num)
+        function obj=showslice(obj,num,varargin)
+            if ~isempty(varargin)
+                m=varargin{1};
+            end
             %showslice This function displays a single z-slice at the given
             %depth.
             if obj.current==1
@@ -441,7 +458,10 @@ classdef onecell
                 if ~isempty(obj.img{i})
                     n=n+1;
                     if n==num
-                        imshow(flipud(obj.img{num}'),[min(min(obj.img{num})) max(max(obj.img{num}))]);colormap(gray);colorbar;axis equal;axis tight;
+                        if isempty(varargin)
+                            m=max(max(obj.img{num}));
+                        end
+                        imshow(flipud(obj.img{num}'),[0 m]);colormap(gray);colorbar;axis equal;axis tight;
                         title(sprintf('%i molecules in a %i nm by %i nm by %i nm cell\n Depth: %i nm Resolution: %i^2 nm^2 / pixel',obj.numofmol,r*2,l,r*2,round(planes(n)),px),'FontWeight','bold');
                     end
                 end
