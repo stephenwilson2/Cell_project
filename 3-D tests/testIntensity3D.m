@@ -1,6 +1,6 @@
 function testIntensity3D()        
-    datapts=2;
-    molpcell=round(1:10:1000);
+    datapts=5;
+    molpcell=round(1:1:400);
     if ~isequal(exist(sprintf('testIntensity3D_%i_%i.mat',datapts,max(molpcell)),'file'),2)
         r=250;
         w=1000;
@@ -34,15 +34,19 @@ function analyze(cells,pts,molpcell)
         pairpsf(i,2)=mean(V);
         pairpsf(i,3)=std(V)/pts^0.5;
     end
-    %with PSF    
+    %with PSF
+    theok=9.5567e-004;% photons per voxel
     figure(74);
     [p,s]=polyfit(pairpsf(:,1), pairpsf(:,2),1);
     y=pairpsf(:,2);
     yfit = polyval(p,pairpsf(:,1));
-    R2psf = corrcoef(pairpsf(:,2), yfit);    
+    R2psf = corrcoef(pairpsf(:,2), yfit);
+    theox=0:.01:max(pairpsf(:,1));
+    theoy=theok*theox;
     hold all;
     errorbar(pairpsf(:,1),pairpsf(:,2),pairpsf(:,3),'ob');
     plot(pairpsf(:,1),yfit,'color', 'red');
+    plot(theox,theoy,'color','blue')
     hold off;
     title('Variance compared to number of molecules',...
         'FontWeight','bold')
@@ -50,7 +54,8 @@ function analyze(cells,pts,molpcell)
     ylabel('Variance (1/pixel^2)')
 
     n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
-    legend('Simulation with PSF',n1)
+    n2=sprintf('Theoretical slope: %d',theok);
+    legend('Simulation with PSF',n1,n2)
     
     saveas(gcf, sprintf('testIntensity3D_%i_%i.fig',pts,max(molpcell)))
     
