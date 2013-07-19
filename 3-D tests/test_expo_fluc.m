@@ -5,15 +5,10 @@ function test_expo_fluc()
         numofmol=100:100:100*imgnum;
         imgs=cell(imgnum*datapts,1);
         i=0;
-    %     figure(2);
         for u=1:datapts        
             for n=1:imgnum
                 i=i+1;
                 imgs{i}=MAKE(numofmol(n));
-    %             subplot(4,imgnum*datapts,i)
-    %             imagesc(imgs{i}{1})
-    %             subplot(4,imgnum*datapts,i+imgnum*datapts)
-    %             imagesc(imgs{i}{2})
             end
         end
         save('test_expo')
@@ -43,10 +38,13 @@ function analyze(imgs,pts,molpcell)
     [p,s]=polyfit(pairspsf(:,1), pairspsf(:,2),1);
     y=pairspsf(:,2);
     yfit = polyval(p,pairspsf(:,1));
-    R2psf = corrcoef(pairspsf(:,2), yfit);    
+    R2psf = corrcoef(pairspsf(:,2), yfit);
+    theox=0:.001:max(sort(pairspsf(:,1)));
+    theoy=calctheo(1)*theox;
     hold all;
     errorbar(pairspsf(:,1),pairspsf(:,2),pairspsf(:,3),'ob');
     plot(pairspsf(:,1),yfit,'color', 'red');
+    plot(theox,theoy,'color','blue')
     hold off;
     title('Variance compared to number of molecules',...
         'FontWeight','bold')
@@ -54,7 +52,8 @@ function analyze(imgs,pts,molpcell)
     ylabel('Variance (1/pixel^2)')
 
     n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
-    legend('Simulation with PSF',n1)
+    n2=sprintf('Theoretical: sigma=%i',1);
+    legend('Simulation with PSF',n1,n2)
     
 %     saveas(gcf, sprintf('testexpo3D_%i_%i.fig',pts,max(molpcell)))
     
@@ -77,10 +76,13 @@ function analyze(imgs,pts,molpcell)
     [p,s]=polyfit(pairlpsf(:,1), pairlpsf(:,2),1);
     y=pairlpsf(:,2);
     yfit = polyval(p,pairlpsf(:,1));
-    R2psf = corrcoef(pairlpsf(:,2), yfit);    
+    R2psf = corrcoef(pairlpsf(:,2), yfit);
+    theox=0:.001:max(sort(pairlpsf(:,1)));
+    theoy=calctheo(10)*theox;
     hold all;
     errorbar(pairlpsf(:,1),pairlpsf(:,2),pairlpsf(:,3),'ob');
     plot(pairlpsf(:,1),yfit,'color', 'red');
+    plot(theox,theoy,'color','blue')
     hold off;
     title('Variance compared to number of molecules',...
         'FontWeight','bold')
@@ -88,24 +90,26 @@ function analyze(imgs,pts,molpcell)
     ylabel('Variance (1/pixel^2)')
 
     n1=sprintf('Fit-Slope: %d, intercept %d R^2: %d', p(1),p(2), R2psf(1,2));
-    legend('Simulation with PSF',n1)
+    n2=sprintf('Theoretical: sigma=%i',10);
+    legend('Simulation with PSF',n1,n2)
     
 %     saveas(gcf, sprintf('testexpo3D_%i_%i.fig',pts,max(molpcell)))
     
 end
 
 
-
+function k=calctheo(sig)
+    k=1/(4*pi*sig*sig)-1/(25*100)
+end
 function imgs=MAKE(numofmol)
     m=zeros(25,100);
-    x=zeros(75,1);
-    y=zeros(300,1);
+    x=zeros(25,1);
+    y=zeros(100,1);
     for i=1:numofmol
-        x(i)=randi([-25 50]);
-        y(i)=randi([-100 200]);
+        x(i)=randi([1 25]);
+        y(i)=randi([1 100]);
         if x(i)>=1 && x(i)<=25 && y(i)>=1 && y(i)<=100
-            m(x(i),y(i))=m(x(i),y(i))+1;            
-
+            m(x(i),y(i))=m(x(i),y(i))+1;
         end
     end
     f=fspecial('gaussian',[100,100],1);
