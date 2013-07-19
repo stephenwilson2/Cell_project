@@ -10,6 +10,8 @@ classdef molecules
         x %X-coordinates of the molecules
         y %Y-coordinates of the molecules
         z %Z-coordinates of the molecules
+        siz=10; %default length of the molecule
+        kuhnlength=10;%length of each segment in nm
     end %properties
     
     
@@ -57,7 +59,28 @@ classdef molecules
                end
                
            end
+           
        end  %addmolecules
+       
+      
+       function obj=rnaodna(obj)
+           molx=zeros(length(obj.x),obj.siz);
+           moly=zeros(length(obj.y),obj.siz);
+           molz=zeros(length(obj.z),obj.siz);
+           for i=1:obj.siz
+               ang=rand(1,length(obj.x))*2*pi;
+               ang2=rand(1,length(obj.x))*2*pi;
+
+               molx(:,i)=obj.x+cos(ang')*obj.kuhnlength;
+               moly(:,i)=obj.y+sin(ang')*obj.kuhnlength;
+               molz(:,i)=obj.z+sin(ang2');
+           end
+           obj.x=reshape(molx,1,length(obj.x)*obj.siz);
+           obj.y=reshape(moly,1,length(obj.y)*obj.siz);
+           obj.z=reshape(molz,1,length(obj.z)*obj.siz);
+       end
+       
+       
     end %methods
     
 end %classdef

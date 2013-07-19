@@ -1,4 +1,8 @@
 function test_helices()
+% test_helices Creates images of a normal cell, a cell with no spherical
+% caps, a high resolution image, a fission yeast sized cell, and a long
+% cell to determine if there are helical structures present or not. If the
+% associated data file is present, that figure will not be generated.
     clear all;
     close all;
     numrange=25:25:125;
@@ -35,11 +39,11 @@ function test_helices()
     l=5000;
     numrange=25*(8750000/250000):25*(8750000/250000):125*(8750000/250000);
     if ~isequal(exist(sprintf('test_helices%s_%i_%i_%i.mat',shape,pxsz,r,l),'file'),2)
-        graph(shape,numrange,pxsz,r,l) % mod pxsz or numrange (the density is diff!)????????????????????????????????
+        graph(shape,numrange,pxsz,r,l)
     end
     r=250;
     numrange=25:25:125;
-    l=1000;
+    
     close all;
     
     %long
@@ -57,13 +61,13 @@ function graph(shape,numrange,pxsz,r,l)
     m=max(max(c.img{1}(:)));
     for i=1:length(numrange)
         for o=1:pts
-            n=n+1;
+            n=n+1
             subplot(length(numrange)*pts/3,3,n);
+            a=onecell(numrange(i),r,l,shape,pxsz);
+            a.showslice(1,m);
+            b=onecell(numrange(i),r,l,shape,pxsz);
+            b.showslice(1,m);
             c=onecell(numrange(i),r,l,shape,pxsz);
-            c.showslice(1,m);
-            c=c.refresh_all();
-            c.showslice(1,m);
-            c=c.refresh_all();
             c.showslice(1,m);
         end
     end
