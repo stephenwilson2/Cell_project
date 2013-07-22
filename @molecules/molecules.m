@@ -11,7 +11,7 @@ classdef molecules
         y %Y-coordinates of the molecules
         z %Z-coordinates of the molecules
         type
-        siz=100; %default length of the molecule
+        siz=10; %default length of the molecule
         kuhnlength=10;%length of each segment in nm
     end %properties
     
@@ -73,21 +73,28 @@ classdef molecules
        
       
        function obj=randomwalk(obj,cel)
-           % randomwalk Creates a random walk from the start point of each molecule and uses
+           % randomwalk (NOT WORKING)Creates a random walk from the start point of each molecule and uses
            % the same shape for the molecules so they are identical copies
            % at different locations.
            molx=zeros(length(obj.x),obj.siz);
            moly=zeros(length(obj.y),obj.siz);
            molz=zeros(length(obj.z),obj.siz);
-           for i=1:obj.siz
-               while ~cel.incell(molx(1,i),moly(1,i),molz(1,i))
-                   zang=rand(length(molx),1)*pi;
-                   ang=rand(length(molx),1)*2*pi;
+           for i=1:length(obj.x)
+               i
+               while ~cel.incell(molx(i,1),moly(i,1),molz(i,1))
+                   zang=randn(1,length(molx))*2*pi;
+                   ang=randn(1,length(molx))*pi;
+                   obj.z
+                   molz
+                   sin(zang)*obj.kuhnlength
+                   obj.z(i)+sin(zang)*obj.kuhnlength
+                   hey=obj.z(i)+sin(zang)*obj.kuhnlength;
 
-                   molz(:,i)=obj.z+sin(zang)*obj.kuhnlength; % not working
+                   molz(i,:)=hey;
                    t=cos(zang)*obj.kuhnlength;
-                   molx(:,i)=obj.x+t*sin(ang);
-                   moly(:,i)=obj.y+t*sin(cos);                   
+                   molx(i,:)=obj.x(i)+t.*sin(ang);
+                   moly(i,:)=obj.y(i)+t.*sin(ang);
+                   [molx moly molz]
                end
            end
            obj.x=reshape(molx,length(obj.x)*obj.siz,1);

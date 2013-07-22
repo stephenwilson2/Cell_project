@@ -23,7 +23,7 @@ for num=numofmol
         f2=fspecial('gaussian',[100,100],sig);
         img{n}=imfilter(m,f);
         figure(2);
-        imagesc(m);
+        imagesc(img{n});
         me(n)=mean(mean(img{n}));
         v(n)=var(var((img{n})))*10000;
     end
