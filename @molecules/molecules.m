@@ -10,24 +10,33 @@ classdef molecules
         x %X-coordinates of the molecules
         y %Y-coordinates of the molecules
         z %Z-coordinates of the molecules
-        siz=10; %default length of the molecule
+        type
+        siz=100; %default length of the molecule
         kuhnlength=10;%length of each segment in nm
     end %properties
     
     
     methods
-       function obj = molecules(cell,c)
+       function obj = molecules(cell,c,varargin)
            %Constructs molecules for the onecell class
             if isa(c,'molecules')
                 obj.x=c.x;
                 obj.y=c.y;
                 obj.z=c.z;
             else
+                if isempty(varargin)
+                    obj.type='pts';
+                else
+                    obj.type=varargin{1};
+                end
                 obj.numofmol=c;
                 obj.x=zeros(obj.numofmol,1);
                 obj.y=zeros(obj.numofmol,1);
                 obj.z=zeros(obj.numofmol,1);
                 obj=obj.addmolecules(cell);
+                if strcmpi(obj.type,'dna')||strcmpi(obj.type,'protein')||strcmpi(obj.type,'rna')
+                    obj=obj.randomwalk(cell);
+                end
             end
        end %constructor
        
@@ -63,21 +72,27 @@ classdef molecules
        end  %addmolecules
        
       
-       function obj=rnaodna(obj)
+       function obj=randomwalk(obj,cel)
+           % randomwalk Creates a random walk from the start point of each molecule and uses
+           % the same shape for the molecules so they are identical copies
+           % at different locations.
            molx=zeros(length(obj.x),obj.siz);
            moly=zeros(length(obj.y),obj.siz);
            molz=zeros(length(obj.z),obj.siz);
            for i=1:obj.siz
-               ang=rand(1,length(obj.x))*2*pi;
-               ang2=rand(1,length(obj.x))*2*pi;
+               while ~cel.incell(molx(1,i),moly(1,i),molz(1,i))
+                   zang=rand(length(molx),1)*pi;
+                   ang=rand(length(molx),1)*2*pi;
 
-               molx(:,i)=obj.x+cos(ang')*obj.kuhnlength;
-               moly(:,i)=obj.y+sin(ang')*obj.kuhnlength;
-               molz(:,i)=obj.z+sin(ang2');
+                   molz(:,i)=obj.z+sin(zang)*obj.kuhnlength; % not working
+                   t=cos(zang)*obj.kuhnlength;
+                   molx(:,i)=obj.x+t*sin(ang);
+                   moly(:,i)=obj.y+t*sin(cos);                   
+               end
            end
-           obj.x=reshape(molx,1,length(obj.x)*obj.siz);
-           obj.y=reshape(moly,1,length(obj.y)*obj.siz);
-           obj.z=reshape(molz,1,length(obj.z)*obj.siz);
+           obj.x=reshape(molx,length(obj.x)*obj.siz,1);
+           obj.y=reshape(moly,length(obj.y)*obj.siz,1);
+           obj.z=reshape(molz,length(obj.z)*obj.siz,1);
        end
        
        

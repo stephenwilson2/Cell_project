@@ -57,7 +57,8 @@ classdef onecell
         pixelsize=64;%Gives the size in nm^2 of the camerapixel
         gopsf=1;%If set to 1, the PSF is applied to the fluorophores. If set to 0, the PSF is not set
         sections=8;%This is the number of the z-sections that will be automatically calculated
-        PSF;
+        PSF % Stores the PSF
+        moltype %describes the type of molecule to be built
     end
     
     properties (SetAccess=private)
@@ -169,8 +170,7 @@ classdef onecell
         
         function obj=refresh_all(obj)
             %refresh_all Refreshes the entire cell; Used if the molecules
-            %were changed. Not automated because refreshing takes a
-            %significant amount of time
+            %were changed.
             obj=label(obj);
             if obj.gopsf==1
                 if strcmp(obj.algo,'sc')
@@ -264,6 +264,16 @@ classdef onecell
             obj.angle = val;
             obj.current=0;
         end % set.angle
+        
+        function obj = set.moltype(obj,val)
+            if ~isa(val,'char')
+                error('moltype must be of class char')
+            end
+            obj.moltype = val;
+            obj=obj.addMolecules(obj.numofmol);
+            obj=refresh_cell(obj);
+        end % set.moltype
+        
         function obj = set.sections(obj,val)
             if ~isa(val,'double')
                 error('Sections must be of class double')
@@ -325,7 +335,11 @@ classdef onecell
         function obj = addMolecules(obj,val)
             %addMolecules Adds a given integer number molecules to the cell
             obj.numofmol=val;
-            obj.mol=molecules(obj,val);
+            if ~isempty(obj.moltype)
+                obj.mol=molecules(obj,val,obj.moltype);
+            else
+                obj.mol=molecules(obj,val);
+            end
             obj.pts=[obj.mol.x obj.mol.y obj.mol.z];
             obj=refresh_all(obj);
         end
