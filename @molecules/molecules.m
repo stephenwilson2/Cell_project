@@ -73,27 +73,26 @@ classdef molecules
        
       
        function obj=randomwalk(obj,cel)
-           % randomwalk Creates a random walk from the start point of each molecule and uses
-           % the same shape for the molecules so they are identical copies
-           % at different locations.
+           % randomwalk Creates a random walk from the start point of each
+           % molecule and creates a unique structure at each point. 
            molx=zeros(length(obj.x),obj.siz);
            moly=zeros(length(obj.y),obj.siz);
            molz=zeros(length(obj.z),obj.siz);
            for i=1:length(obj.x)
                for p=1:obj.siz
-                   while ~cel.incell(molx(i,p),moly(i,p),molz(i,p))
-                       zang=randn(1,1)*2*pi;
-                       ang=randn(1,1)*pi;
+                   while ~cel.incell(molx(1,p),moly(1,p),molz(1,p))
+                       zang=randn(length(obj.x),1)*2*pi;
+                       ang=randn(length(obj.x),1)*2*pi;
                        if p==1
-                           molz(i,p)=obj.z(i)+sin(zang)*obj.kuhnlength;
+                           molz(:,p)=obj.z(:)+sin(zang)*obj.kuhnlength;
                            t=cos(zang)*obj.kuhnlength;
-                           molx(i,p)=obj.x(i)+t.*sin(ang);
-                           moly(i,p)=obj.y(i)+t.*sin(ang);
+                           molx(:,p)=obj.x(:)+t.*sin(ang);
+                           moly(:,p)=obj.y(:)+t.*sin(ang);
                        else
-                           molz(i,p)=molz(i,p-1)+sin(zang)*obj.kuhnlength;
+                           molz(:,p)=molz(:,p-1)+sin(zang)*obj.kuhnlength;
                            t=cos(zang)*obj.kuhnlength;
-                           molx(i,p)=molx(i,p-1)+t.*sin(ang);
-                           moly(i,p)=moly(i,p-1)+t.*sin(ang);
+                           molx(:,p)=molx(:,p-1)+t.*sin(ang);
+                           moly(:,p)=moly(:,p-1)+t.*sin(ang);
                        end
                    end
                end

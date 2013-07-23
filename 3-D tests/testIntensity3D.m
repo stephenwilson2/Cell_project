@@ -27,7 +27,7 @@ function analyze(cells,pts,molpcell)
         n=zeros(pts,1);
         for o=1:pts
             e=e+1;
-            V(o)=var(cells{e}.img{1}(:));
+            V(o)=var(cells{e}.img{1}(:)); %Should this be 
             n(o)=mean(cells{e}.img{1}(:));
         end
         pairpsf(i,1)=mean(n);
@@ -48,7 +48,7 @@ function analyze(cells,pts,molpcell)
     plot(pairpsf(:,1),yfit,'color', 'red');
     plot(theox,theoy,'color','blue')
     hold off;
-    title('Variance compared to number of molecules',...
+    title('Variance compared to Mean Pixel Intensity',...
         'FontWeight','bold')
     xlabel('Mean Pixel Intensity (1/pixel)')
     ylabel('Variance (1/pixel^2)')
