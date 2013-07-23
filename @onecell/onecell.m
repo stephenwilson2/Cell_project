@@ -1,5 +1,5 @@
 classdef onecell
-    %onecell Creates one cell that can be manipulated.
+    %%onecell Creates one cell that can be manipulated.
     %Constructor:
     %Takes input for any of the following variables:
     %    - numofmol: the number of molecules to be added to the cell
@@ -126,7 +126,7 @@ classdef onecell
         end
     end
     
-    % Class methods
+    %% Class methods
     methods
         function obj = onecell(varargin)
             % Sets defaults for optional inputs in order: numofmol,r,l,algo,pixelsize,ori,gopsf,angle
@@ -214,7 +214,7 @@ classdef onecell
             obj.current=1;
         end %refresh_cell
         
-        %set information about the cell
+        %%Set information about the cell
         function obj = set.ori(obj,val)
             obj.oldori=obj.ori;
             if ~isa(val,'double')
@@ -296,7 +296,7 @@ classdef onecell
             end
         end
         
-        %get information about the cell
+        %%get information about the cell
         function val = get.l(obj)
             val=obj.l;
         end % get.l
@@ -331,7 +331,7 @@ classdef onecell
         end %incell(x,y)
         
         
-        %Adjusts or adds to the cell
+        %%Adjusts or adds to the cell
         function obj = addMolecules(obj,val)
             %addMolecules Adds a given integer number molecules to the cell
             obj.numofmol=val;
@@ -402,7 +402,7 @@ classdef onecell
             
         end
 
-        %Show the cell
+        %%Show the cell
         function obj=imshow(obj)
             % IMSHOW Specifies the way that imshow displays the onecell object
             obj=check(obj);

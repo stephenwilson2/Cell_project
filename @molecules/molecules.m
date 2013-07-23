@@ -11,7 +11,7 @@ classdef molecules
         y %Y-coordinates of the molecules
         z %Z-coordinates of the molecules
         type
-        siz=10; %default length of the molecule
+        siz=100; %default length of the molecule
         kuhnlength=10;%length of each segment in nm
     end %properties
     
@@ -73,28 +73,29 @@ classdef molecules
        
       
        function obj=randomwalk(obj,cel)
-           % randomwalk (NOT WORKING)Creates a random walk from the start point of each molecule and uses
+           % randomwalk Creates a random walk from the start point of each molecule and uses
            % the same shape for the molecules so they are identical copies
            % at different locations.
            molx=zeros(length(obj.x),obj.siz);
            moly=zeros(length(obj.y),obj.siz);
            molz=zeros(length(obj.z),obj.siz);
            for i=1:length(obj.x)
-               i
-               while ~cel.incell(molx(i,1),moly(i,1),molz(i,1))
-                   zang=randn(1,length(molx))*2*pi;
-                   ang=randn(1,length(molx))*pi;
-                   obj.z
-                   molz
-                   sin(zang)*obj.kuhnlength
-                   obj.z(i)+sin(zang)*obj.kuhnlength
-                   hey=obj.z(i)+sin(zang)*obj.kuhnlength;
-
-                   molz(i,:)=hey;
-                   t=cos(zang)*obj.kuhnlength;
-                   molx(i,:)=obj.x(i)+t.*sin(ang);
-                   moly(i,:)=obj.y(i)+t.*sin(ang);
-                   [molx moly molz]
+               for p=1:obj.siz
+                   while ~cel.incell(molx(i,p),moly(i,p),molz(i,p))
+                       zang=randn(1,1)*2*pi;
+                       ang=randn(1,1)*pi;
+                       if p==1
+                           molz(i,p)=obj.z(i)+sin(zang)*obj.kuhnlength;
+                           t=cos(zang)*obj.kuhnlength;
+                           molx(i,p)=obj.x(i)+t.*sin(ang);
+                           moly(i,p)=obj.y(i)+t.*sin(ang);
+                       else
+                           molz(i,p)=molz(i,p-1)+sin(zang)*obj.kuhnlength;
+                           t=cos(zang)*obj.kuhnlength;
+                           molx(i,p)=molx(i,p-1)+t.*sin(ang);
+                           moly(i,p)=moly(i,p-1)+t.*sin(ang);
+                       end
+                   end
                end
            end
            obj.x=reshape(molx,length(obj.x)*obj.siz,1);

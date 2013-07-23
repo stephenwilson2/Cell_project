@@ -2,7 +2,7 @@ op=8;
 numofmol=1:1:op;
 o=0;
 Vs=cell(op,1);
-% hold all;
+
 for num=numofmol
     o=o+1;
     m=zeros(25,100);
@@ -22,26 +22,30 @@ for num=numofmol
         f=fspecial('gaussian',[100,100],sig);
         f2=fspecial('gaussian',[100,100],sig);
         img{n}=imfilter(m,f);
-        figure(2);
-        imagesc(img{n});
+%         figure(2);
+%         imagesc(img{n});
         me(n)=mean(mean(img{n}));
         v(n)=var(var((img{n})))*10000;
     end
     
     figure(3);
     hold all;
-    subplot(1,3,1)
+    subplot(1,4,1)
     plot(.1:.1:50, me/num)
     o=o+1;
     hold off;
     hold all;
-    subplot(1,3,2)
+    subplot(1,4,2)
     semilogx(.1:.1:50,v/num)
     Vs{round(o/2)}=v;
     hold off;
+    hold all;
+    subplot(1,4,3)
+    plot(me,v)
+    hold off;
 end
-% hold off
-subplot(1,3,1)
+
+subplot(1,4,1)
 title(sprintf('The Normalized Mean Pixel Intensity against the Std. Dev. of the Gaussian \n Across All Numbers of Molecules'))
 xlabel('\sigma (nm)')
 ylabel('Mean Pixel Intensity')
@@ -52,14 +56,23 @@ legend(sprintf('%d molecule',numofmol(1)),sprintf('%d molecules',numofmol(2)),sp
 title(sprintf('The Variance against the Std. Dev. of the Gaussian \n and Varying amounts of Molecules'))
 xlabel('\sigma (nm)')
 
-subplot(1,3,2)
+subplot(1,4,2)
 legend(sprintf('%d molecule',numofmol(1)),sprintf('%d molecules',numofmol(2)),sprintf('%d molecules',numofmol(3))...
     ,sprintf('%d molecules',numofmol(4)),sprintf('%d molecules',numofmol(5)),sprintf('%d molecules',numofmol(6)),...
     sprintf('%d molecules',numofmol(7)), sprintf('%d molecules',numofmol(8)))
 title(sprintf('The Variance against the Std. Dev. of the Gaussian \n and Varying amounts of Molecules'))
 xlabel('\sigma (nm)')
 ylabel('Variance (1/nm^2)')
-subplot(1,3,3)
+
+subplot(1,4,3)
+legend(sprintf('%d molecule',numofmol(1)),sprintf('%d molecules',numofmol(2)),sprintf('%d molecules',numofmol(3))...
+    ,sprintf('%d molecules',numofmol(4)),sprintf('%d molecules',numofmol(5)),sprintf('%d molecules',numofmol(6)),...
+    sprintf('%d molecules',numofmol(7)), sprintf('%d molecules',numofmol(8)))
+title(sprintf('The Mean Pixel Intensity against the Variance \n and Varying amounts of Molecules'))
+xlabel('Mean Pixel Intensity')
+ylabel('Variance (1/nm^2)')
+
+subplot(1,4,4)
 hold all;
 xs=zeros(8);
 ys=zeros(8);
