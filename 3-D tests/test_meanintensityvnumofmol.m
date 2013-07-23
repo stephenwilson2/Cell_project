@@ -1,30 +1,43 @@
 function test_meanintensityvnumofmol()
     close all;
     clear all;
-    datapts=10;    
-    numofmol=round(linspace(1,1000,50));
-    c=cell(length(numofmol),1);
-    m=zeros(length(numofmol),1);
-    v=zeros(length(numofmol),1);
-    sem=zeros(length(numofmol),1);
-    sev=zeros(length(numofmol),1);
-    tmpm=zeros(datapts,1);
-    tmpv=zeros(datapts,1);
-    
-    n=0;
-    for i=1:length(numofmol)
-        for o=1:datapts
-            n=n+1;
-            c{n}=onecell(numofmol(i));
-            tmpm(o)=mean(mean(c{n}.img{1}(:)));
-            tmpv(o)=var(c{n}.img{1}(:));
+    ROI=0;
+    if ~isequal(exist(sprintf('mvn_ROI_%i.mat',ROI),'file'),2)        
+        datapts=10;
+        numofmol=round(linspace(1,1000,10)); %min, max, number of pts b/w
+        c=cell(length(numofmol),1);
+        m=zeros(length(numofmol),1);
+        v=zeros(length(numofmol),1);
+        sem=zeros(length(numofmol),1);
+        sev=zeros(length(numofmol),1);
+        tmpm=zeros(datapts,1);
+        tmpv=zeros(datapts,1);
+        
+        n=0;
+        for i=1:length(numofmol)
+            numofmol(i)
+            for o=1:datapts
+                n=n+1;
+                c{n}=onecell(numofmol(i));
+                if ROI
+                    f=round(c{n}.PSF.sigma/c{n}.pixelsize/2);  %half a PSF
+                    img=c{n}.img{1};         
+                    tmpm(o)=mean(mean(img(f:size(img,1)-f,f:size(img,2)-f))); 
+                    tmpv(o)=var(var(img(f:size(img,1)-f,f:size(img,2)-f)));
+                else
+                    tmpm(o)=mean(mean(c{n}.img{1}(:)));
+                    tmpv(o)=var(c{n}.img{1}(:));
+                end
+            end
+            m(i)=mean(tmpm);
+            v(i)=mean(tmpv);
+            sem(i)=std(tmpm)/datapts^0.5;
+            sev(i)=std(tmpv)/datapts^0.5;
         end
-        m(i)=mean(tmpm);
-        v(i)=mean(tmpv);
-        sem(i)=std(tmpm)/datapts^0.5;
-        sev(i)=std(tmpv)/datapts^0.5;
+        save(sprintf('mvn_ROI_%i.mat',ROI))
+    else
+        load(sprintf('mvn_ROI_%i.mat',ROI))
     end
-    
     figure(4);
     subplot(1,2,1)
     errorbar(numofmol,m,sem);
