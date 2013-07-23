@@ -71,7 +71,7 @@ function analyze(imgs,pts,molpcell)
         pairlpsf(i,2)=mean(V);
         pairlpsf(i,3)=std(V)/pts^0.5;
     end
-    %with small PSF    
+    %with large PSF    
     figure(76);
     [p,s]=polyfit(pairlpsf(:,1), pairlpsf(:,2),1);
     y=pairlpsf(:,2);
