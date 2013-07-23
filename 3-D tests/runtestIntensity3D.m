@@ -1,1 +1,0 @@
-testIntensity3D(20)

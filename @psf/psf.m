@@ -76,6 +76,7 @@ classdef psf
             de=(6^.5)*n*k*(4*power(cos(a),5)-25*power(cos(a),7/2)+42*power(cos(a),5/2)...
                 -25*power(cos(a),3/2)+4)^.5;
             obj.sigmaz=num/de;
+            
         end %calcsig
         
         function obj = applyPSF(obj,cel,currentplane)

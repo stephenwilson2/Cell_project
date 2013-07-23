@@ -1,7 +1,6 @@
-function test_meanintensityvnumofmol()
-    close all;
-    clear all;
-    ROI=0;
+function test_meanintensityvnumofmol(ROI)
+    %works with spherocylinders only right now
+%     ROI=0;
     if ~isequal(exist(sprintf('mvn_ROI_%i.mat',ROI),'file'),2)        
         datapts=10;
         numofmol=round(linspace(1,1000,10)); %min, max, number of pts b/w
@@ -20,10 +19,10 @@ function test_meanintensityvnumofmol()
                 n=n+1;
                 c{n}=onecell(numofmol(i));
                 if ROI
-                    f=round(c{n}.PSF.sigma/c{n}.pixelsize/2);  %half a PSF
-                    img=c{n}.img{1};         
+                    f=round(c{n}.PSF.sigma/c{n}.pixelsize/2);  %half a PSF on each side
+                    img=c{n}.img{1};
                     tmpm(o)=mean(mean(img(f:size(img,1)-f,f:size(img,2)-f))); 
-                    tmpv(o)=var(var(img(f:size(img,1)-f,f:size(img,2)-f)));
+                    tmpv(o)=mean(var(img(f:size(img,1)-f,f:size(img,2)-f)));
                 else
                     tmpm(o)=mean(mean(c{n}.img{1}(:)));
                     tmpv(o)=var(c{n}.img{1}(:));
@@ -38,7 +37,13 @@ function test_meanintensityvnumofmol()
     else
         load(sprintf('mvn_ROI_%i.mat',ROI))
     end
-    figure(4);
+    if ROI
+        s='The ROI is 1 PSF on both axes smaller';
+    else
+        s='THE ROI is the entire cell';
+    end
+        
+    figure('name',s);
     subplot(1,2,1)
     errorbar(numofmol,m,sem);
        title('Mean Compared to Number of Molecules',...
@@ -46,8 +51,17 @@ function test_meanintensityvnumofmol()
     ylabel('Mean Pixel Intensity (1/pixel)')
     xlabel('Number of Molecules')
 
-    
-    theok=9.5567e-004;% photons per voxel
+    if ROI
+%         l=c{n}.l-f-f*c{n}.pixelsize;
+%         r=c{n}.r-f-f*c{n}.pixelsize/2;
+%         a=2*pi*r+(l-2*r)*r;
+        theok=3.6456e-009*c{n}.pixelsize^2;
+    else
+%         l=c{n}.l;
+%         r=c{n}.r;
+%         a=2*pi*r+(l-2*r)*r;
+        theok=3.6456e-009*c{n}.pixelsize^2;% photons per area of z-slice. The area is the area of the cell not the camera
+    end
     subplot(1,2,2)
     hold all;
     errorbar(m,v,sev)
@@ -60,5 +74,6 @@ function test_meanintensityvnumofmol()
             'FontWeight','bold')
     xlabel('Mean Pixel Intensity (1/pixel)')
     ylabel('Variance (1/pixel^2)')
+    legend('Simulation','Theory')
     
 end
